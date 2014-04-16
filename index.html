@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Tracks</title>
+		
+		<!-- Icon -->
+		<link rel="icon" href="images/favicon.ico" />
+		
+		<!-- Style -->
+		<link rel="stylesheet" type="text/css" href="style/main.css">
+	    <link rel="stylesheet" type="text/css" href="style/grids-min.css">
+	    <link rel="stylesheet" type="text/css" href="style/cssreset-min.css">
+	    <link rel="stylesheet" type="text/css" href="style/bootstrap.css">
+	    <link rel="stylesheet" type="text/css" href="style/flat-ui.css">
+	    
+	    <!-- Google Maps -->
+    	<script type="text/javascript" src="http://maps.google.com/maps/api/js?v=3.3&sensor=false&language=en"></script>
+	    
+	    
+	    <script type="text/javascript" src="libs/jquery-1.7.2.min.js"></script>
+	    <script type="text/javascript" src="libs/js.class.js"></script>
+		<script type="text/javascript" src="libs/romtracks.jquery.js"></script>
+		<script type="text/javascript" src="libs/romtracks.js"></script>
+		<script type="text/javascript" src="libs/mustache.js"></script>
+		<script type="text/javascript" src="libs/jsonp.js"></script>
+		<script type="text/javascript" src="libs/romtracks.helpers.js"></script>
+	    
+		<!-- Font -->
+	    <link href='http://fonts.googleapis.com/css?family=Alfa+Slab+One' rel='stylesheet' type='text/css'>
+		
+		<!-- Script -->
+		<script>
+	
+			(function( $j )
+			{
+				$j(document).ready( function(){
+					
+					/** App **/
+					var app = new TRACKS.App({
+						state: TRACKS.App.States.HOME,
+						views: [
+							/*
+							 * Search View
+							 */
+							new TRACKS.SearchView({
+								container: TRACKS.one("#search"),
+								hideOnStates: [ ],
+								templates: {
+									main: $j.trim( TRACKS.one("#search-tpl").innerHTML )
+								}
+							}),
+							/*
+							 * Map View
+							 */
+							new TRACKS.MapView({
+								container: TRACKS.one("#map"),
+								renderContainer: TRACKS.one("#map"),
+								hideOnStates: [],
+								zoom: 3,
+								templates: {
+								}	
+							})
+						]
+					});
+	
+					app.start();
+					
+					//GeolocateUser
+					TRACKS.DataManager.getInstance().geolocateUser();
+				});
+				
+			})(jQuery.noConflict());
+			
+		</script>	
+		
+	</head>
+	<body>
+
+        <div id="search"></div>
+        <div id="map"></div>
+		
+		<!-- Templates -->
+		
+		<!-- Search View -->
+		<script id="search-tpl" type="text/template">
+            <img src="assets/images/red-search-icon.png" width="30px"/>
+			<input id="search-input" class="yui3-u" type="text" placeholder="Find tracks..."/>
+		</script>
+		
+	</body>
+</html>
