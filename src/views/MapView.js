@@ -3,7 +3,7 @@
 	var MapView = TRACKS.View.extend({
 		
 		map: null,
-        zoom: 17,
+        zoom: 15,
         centerMarker: null,
         trackLayers: [],
 		
@@ -19,7 +19,6 @@
 			this.dataManager.on('userGeocoded', TRACKS.bind( this.onUserGeocoded, this));
 			this.dataManager.on('userNotGeocoded', TRACKS.bind( this.onUserNotGeocoded, this));
 			
-            this.markerIconUrl = cfg.markerIconUrl || "images/grey-blue-pin-48.png";
 			this.startZoom = cfg.startZoom || 3;
 		},
 		
@@ -34,7 +33,7 @@
 			var mapOptions = {
 				zoom: this.startZoom,
                 center: new google.maps.LatLng(40.0000, -98.0000),
-				mapTypeId: google.maps.MapTypeId.ROADMAP,
+				mapTypeId: google.maps.MapTypeId.SATELLITE,
 				mapTypeControl: true,
 			    mapTypeControlOptions: {
 			        style: google.maps.MapTypeControlStyle.DEFAULT,
@@ -106,7 +105,7 @@
                 });
 
                 marker.track = track;
-
+                
                 // Toggle track visibility on track marker click
                  google.maps.event.addListener(marker, 'click', function () {
 
@@ -120,6 +119,16 @@
                         this.track.isVisible = true;
                      }
                  });
+                
+                google.maps.event.addListener(marker, 'mouseover', TRACKS.bind(function (evt) {
+                    this.onTrackMarkerOver(marker);
+                }, this));
+                
+                google.maps.event.addListener(marker, 'mouseout', TRACKS.bind(function (evt) {
+                    if (this.hoverTooltip) {
+                        this.hoverTooltip.close();
+                    }
+                }, this));
             }
         },
         
@@ -156,11 +165,28 @@
 				lat: msg.lat,
 				lon: msg.lon
 			}, this.zoom);
-		}
+		},
 		
 		/*
 		 * Events
 		 */
+        
+        onTrackMarkerOver: function (marker) {
+            var content = this.mustache(this.templates.tooltipTemplate, {
+                track: {
+                    name: marker.track.name
+                }
+            });
+
+            this.hoverTooltip = new InfoBox({
+                content: content, 
+                closeBoxMargin: "11px 10px 0px 0px",
+                alignBottom: true,
+                //pixelOffset: new google.maps.Size(-152, -25)
+            });
+            
+            this.hoverTooltip.open(this.map, marker);
+        }
 
 	});
 	

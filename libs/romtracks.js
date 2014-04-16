@@ -333,13 +333,14 @@
                     this.expectedNbOfTracks = parsedData.length;
                     
                     for (var i = 0; i < parsedData.length; i++) {
+                        
                         jQuery.ajax({
                             url: parsedData[i].url,
                             type: 'GET',
                             dataType: "xml",
                             success: TRACKS.bind(function(gpxData){
-                                this.tracks.push(this.trackFromGPX(gpxData));
-                                
+                                var points = this.trackPointsFromGPX(gpxData);
+                                this.saveTrack(parsedData[this.trackCounter].name, points);
                                 this.trackCounter++;
                                 
                                 if (this.trackCounter == this.expectedNbOfTracks) {
@@ -352,7 +353,11 @@
 		    });
 		},
         
-        trackFromGPX: function (gpxData) {
+        saveTrack: function(name, points) {
+            this.tracks.push(new TRACKS.Track(name, points));
+        },
+        
+        trackPointsFromGPX: function (gpxData) {
             var points = [];
             var pointNodeName = null;
             
@@ -372,7 +377,7 @@
                 points.push(p);
             });
             
-            return new TRACKS.Track(points);
+            return points
         }
 
 	});
@@ -392,7 +397,8 @@
 
 (function( TRACKS )
 {
-	var Track = function (points, color, startMarkerUrl) {
+	var Track = function (name, points, color, startMarkerUrl) {
+        this.name = name
         this.points = points;
         this.color = color || "#D95642";
         this.startMarkerUrl = startMarkerUrl || "assets/images/marker.png";
@@ -492,7 +498,7 @@
 	var MapView = TRACKS.View.extend({
 		
 		map: null,
-        zoom: 17,
+        zoom: 15,
         centerMarker: null,
         trackLayers: [],
 		
@@ -508,7 +514,6 @@
 			this.dataManager.on('userGeocoded', TRACKS.bind( this.onUserGeocoded, this));
 			this.dataManager.on('userNotGeocoded', TRACKS.bind( this.onUserNotGeocoded, this));
 			
-            this.markerIconUrl = cfg.markerIconUrl || "images/grey-blue-pin-48.png";
 			this.startZoom = cfg.startZoom || 3;
 		},
 		
@@ -523,7 +528,7 @@
 			var mapOptions = {
 				zoom: this.startZoom,
                 center: new google.maps.LatLng(40.0000, -98.0000),
-				mapTypeId: google.maps.MapTypeId.ROADMAP,
+				mapTypeId: google.maps.MapTypeId.SATELLITE,
 				mapTypeControl: true,
 			    mapTypeControlOptions: {
 			        style: google.maps.MapTypeControlStyle.DEFAULT,
@@ -595,7 +600,7 @@
                 });
 
                 marker.track = track;
-
+                
                 // Toggle track visibility on track marker click
                  google.maps.event.addListener(marker, 'click', function () {
 
@@ -609,6 +614,16 @@
                         this.track.isVisible = true;
                      }
                  });
+                
+                google.maps.event.addListener(marker, 'mouseover', TRACKS.bind(function (evt) {
+                    this.onTrackMarkerOver(marker);
+                }, this));
+                
+                google.maps.event.addListener(marker, 'mouseout', TRACKS.bind(function (evt) {
+                    if (this.hoverTooltip) {
+                        this.hoverTooltip.close();
+                    }
+                }, this));
             }
         },
         
@@ -645,11 +660,28 @@
 				lat: msg.lat,
 				lon: msg.lon
 			}, this.zoom);
-		}
+		},
 		
 		/*
 		 * Events
 		 */
+        
+        onTrackMarkerOver: function (marker) {
+            var content = this.mustache(this.templates.tooltipTemplate, {
+                track: {
+                    name: marker.track.name
+                }
+            });
+
+            this.hoverTooltip = new InfoBox({
+                content: content, 
+                closeBoxMargin: "11px 10px 0px 0px",
+                alignBottom: true,
+                //pixelOffset: new google.maps.Size(-152, -25)
+            });
+            
+            this.hoverTooltip.open(this.map, marker);
+        }
 
 	});
 	
@@ -698,7 +730,7 @@
 		{
 			TRACKS.one(INPUT_SELECTOR, this.container).focus();
 		},
-		
+		 
 		search: function( value, multipleResults )
 		{
 			this.searchInputText = value || this.getInputValue();
@@ -772,6 +804,7 @@
 				return;
 				
 			this.setInputValue( msg.address );
+            this.toggleSearchInput();
 		}
 		
 	});

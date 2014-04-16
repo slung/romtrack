@@ -24,6 +24,7 @@
 		<script type="text/javascript" src="libs/mustache.js"></script>
 		<script type="text/javascript" src="libs/jsonp.js"></script>
 		<script type="text/javascript" src="libs/romtracks.helpers.js"></script>
+        <script type="text/javascript" src="libs/infobox.js"></script>
 	    
 		<!-- Font -->
 	    <link href='http://fonts.googleapis.com/css?family=Alfa+Slab+One' rel='stylesheet' type='text/css'>
@@ -58,6 +59,7 @@
 								hideOnStates: [],
 								zoom: 3,
 								templates: {
+                                    tooltipTemplate: $j.trim( TRACKS.one("#tooltip-tpl").innerHTML )
 								}	
 							})
 						]
@@ -85,6 +87,13 @@
 		<script id="search-tpl" type="text/template">
             <img src="assets/images/red-search-icon.png" width="30px"/>
 			<input id="search-input" class="yui3-u" type="text" placeholder="Find tracks..."/>
+		</script>
+        
+        <script id="tooltip-tpl" type="text/template">
+            <div class="infoWindow">
+                {{#track}}{{name}}{{/track}}
+            </div>
+            <div class="tail"></div>
 		</script>
 		
 	</body>

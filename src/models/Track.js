@@ -1,6 +1,7 @@
 (function( TRACKS )
 {
-	var Track = function (points, color, startMarkerUrl) {
+	var Track = function (name, points, color, startMarkerUrl) {
+        this.name = name
         this.points = points;
         this.color = color || "#D95642";
         this.startMarkerUrl = startMarkerUrl || "assets/images/marker.png";

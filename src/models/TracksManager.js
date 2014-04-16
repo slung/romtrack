@@ -23,13 +23,14 @@
                     this.expectedNbOfTracks = parsedData.length;
                     
                     for (var i = 0; i < parsedData.length; i++) {
+                        
                         jQuery.ajax({
                             url: parsedData[i].url,
                             type: 'GET',
                             dataType: "xml",
                             success: TRACKS.bind(function(gpxData){
-                                this.tracks.push(this.trackFromGPX(gpxData));
-                                
+                                var points = this.trackPointsFromGPX(gpxData);
+                                this.saveTrack(parsedData[this.trackCounter].name, points);
                                 this.trackCounter++;
                                 
                                 if (this.trackCounter == this.expectedNbOfTracks) {
@@ -42,7 +43,11 @@
 		    });
 		},
         
-        trackFromGPX: function (gpxData) {
+        saveTrack: function(name, points) {
+            this.tracks.push(new TRACKS.Track(name, points));
+        },
+        
+        trackPointsFromGPX: function (gpxData) {
             var points = [];
             var pointNodeName = null;
             
@@ -62,7 +67,7 @@
                 points.push(p);
             });
             
-            return new TRACKS.Track(points);
+            return points
         }
 
 	});

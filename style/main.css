@@ -1,3 +1,4 @@
+/* Map */
 #map {
     position: absolute;
     top: 0;
@@ -6,6 +7,7 @@
     left: 0;
 }
 
+/* Search */
 #search img {
     position: absolute;
     top: 30px;
@@ -41,5 +43,25 @@
     outline: none;
     z-index: 9999;
     border-radius: 2px;
-    opacity: 0.9;
+}
+
+/* Tooltip */
+.infoWindow {
+    width: 200px;
+	height: 80px;
+	background-color: #FFFFFF;
+	padding: 10px;
+    
+    border-radius: 5px 5px 5px 5px;
+    -moz-border-radius: 5px 5px 5px 5px;
+    -webkit-border-radius: 5px 5px 5px 5px;
+}
+
+.infoWindow .tail {
+    width: 0px;
+    height: 0px;
+    border-style: solid;
+    border-width: 5px 5px 0 5px;
+    border-color: #FFFFFF transparent transparent transparent;
+    margin: auto;
 }

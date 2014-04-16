@@ -112,6 +112,7 @@
 				return;
 				
 			this.setInputValue( msg.address );
+            this.toggleSearchInput();
 		}
 		
 	});
