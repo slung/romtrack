@@ -23,32 +23,36 @@
                     this.expectedNbOfTracks = parsedData.length;
                     
                     for (var i = 0; i < parsedData.length; i++) {
-                        
-                        jQuery.ajax({
-                            url: parsedData[i].url,
-                            type: 'GET',
-                            dataType: "xml",
-                            success: TRACKS.bind(function(gpxData){
-                                var points = this.trackPointsFromGPX(gpxData);
-                                this.saveTrack(parsedData[this.trackCounter].name, points);
-                                this.trackCounter++;
-                                
-                                if (this.trackCounter == this.expectedNbOfTracks) {
-                                    TRACKS.dispatcher.fire("tracksLoaded", this.tracks);
-                                }
-                            }, this)
-                        });
+                        this.extractTrackData(parsedData[i]);
                     }
 		    	}, this)
 		    });
 		},
         
-        saveTrack: function(name, points) {
-            this.tracks.push(new TRACKS.Track(name, points));
+        extractTrackData: function (parsedData) {
+            jQuery.ajax({
+                url: parsedData.url,
+                type: 'GET',
+                dataType: "xml",
+                success: TRACKS.bind(function(gpxData){
+                    var trackData = this.trackPointsFromGPX(gpxData);
+                    this.saveTrack(parsedData.name, trackData.trackPoints, trackData.elevationPoints);
+                    this.trackCounter++;
+
+                    if (this.trackCounter == this.expectedNbOfTracks) {
+                        TRACKS.dispatcher.fire("tracksLoaded", this.tracks);
+                    }
+                }, this)
+            });
+        },
+        
+        saveTrack: function(name, trackPoints, elevationPoints) {
+            this.tracks.push(new TRACKS.Track(name, trackPoints, elevationPoints));
         },
         
         trackPointsFromGPX: function (gpxData) {
-            var points = [];
+            var trackPoints = [];
+            var elevationPoints = [];
             var pointNodeName = null;
             
             if (jQuery(gpxData).find("rtept").length > 0) {
@@ -63,11 +67,13 @@
                 var lat = jQuery(this).attr("lat");
                 var lng = jQuery(this).attr("lon");
                 var p = new google.maps.LatLng(lat, lng);
+                var ep = jQuery(this).children("ele").text();
 
-                points.push(p);
+                trackPoints.push(p);
+                elevationPoints.push(ep);
             });
             
-            return points
+            return {trackPoints: trackPoints, elevationPoints: elevationPoints};
         }
 
 	});

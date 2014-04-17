@@ -5,7 +5,33 @@
 		map: null,
         zoom: 15,
         centerMarker: null,
-        trackLayers: [],
+        markers: [],
+        clusterOptions: {
+            gridSize: 50,
+            maxZoom: 15,
+            styles: [{
+                url: 'assets/images/cluster45x45.png',
+                height: 45,
+                width: 45,
+                anchor: (TRACKS.ie() > 8) ? [17, 0] : [16, 0],
+                textColor: '#197EBA',
+                textSize: 11
+              }, {
+                url: 'assets/images/cluster70x70.png',
+                height: 70,
+                width: 70,
+                anchor: (TRACKS.ie() > 8) ? [29, 0] : [28, 0],
+                textColor: '#197EBA',
+                textSize: 11
+              }, {
+                url: 'assets/images/cluster90x90.png',
+                height: 90,
+                width: 90,
+                anchor: [41, 0],
+                textColor: '#197EBA',
+                textSize: 11
+              }]
+        },
 		
 		events: {
 			
@@ -33,7 +59,7 @@
 			var mapOptions = {
 				zoom: this.startZoom,
                 center: new google.maps.LatLng(40.0000, -98.0000),
-				mapTypeId: google.maps.MapTypeId.SATELLITE,
+				mapTypeId: google.maps.MapTypeId.HYBRID,
 				mapTypeControl: true,
 			    mapTypeControlOptions: {
 			        style: google.maps.MapTypeControlStyle.DEFAULT,
@@ -105,32 +131,47 @@
                 });
 
                 marker.track = track;
-                
-                // Toggle track visibility on track marker click
-                 google.maps.event.addListener(marker, 'click', function () {
-
-                     if (this.track.isVisible) {
-                        this.setVisible(true);
-                        this.track.mapTrack.setMap(null);
-                        this.track.isVisible = false;
-                     } else {
-                        this.track.mapTrack.setMap(this.map);
-                        this.map.fitBounds(this.track.bounds);
-                        this.track.isVisible = true;
-                     }
-                 });
-                
-                google.maps.event.addListener(marker, 'mouseover', TRACKS.bind(function (evt) {
-                    this.onTrackMarkerOver(marker);
-                }, this));
-                
-                google.maps.event.addListener(marker, 'mouseout', TRACKS.bind(function (evt) {
-                    if (this.hoverTooltip) {
-                        this.hoverTooltip.close();
-                    }
-                }, this));
+                this.addStartTrackMarkerListeners(marker);
+                this.markers.push(marker);
             }
+            
+            this.enableClustering();
         },
+        
+        addStartTrackMarkerListeners: function (marker) {
+            // Toggle track visibility on track marker click
+             google.maps.event.addListener(marker, 'click', function () {
+
+                 if (this.track.isVisible) {
+                    this.setVisible(true);
+                    this.track.mapTrack.setMap(null);
+                    this.track.isVisible = false;
+                 } else {
+                    this.track.mapTrack.setMap(this.map);
+                    this.map.fitBounds(this.track.bounds);
+                    this.track.isVisible = true;
+                 }
+             });
+
+            google.maps.event.addListener(marker, 'mouseover', TRACKS.bind(function (evt) {
+                this.onTrackMarkerOver(marker);
+            }, this));
+
+            google.maps.event.addListener(marker, 'mouseout', TRACKS.bind(function (evt) {
+                if (this.hoverTooltip) {
+                    this.hoverTooltip.close();
+                }
+            }, this));
+        },
+        
+        enableClustering: function()
+		{
+			this.markerCluster = new MarkerClusterer(this.map, this.markers, {
+				styles: this.clusterOptions.styles,
+				gridSize: this.clusterOptions.gridSize,
+				maxZoom: this.clusterOptions.maxZoom
+			});
+		},
         
 		/*
 		 * Messages
@@ -151,7 +192,7 @@
 		 */
 		onUserNotGeocoded: function( msg )
 		{
-			this.zoom = 3;
+			//this.zoom = 3;
 		},
         
         onTracksLoaded: function (msg) {
@@ -180,9 +221,8 @@
 
             this.hoverTooltip = new InfoBox({
                 content: content, 
-                closeBoxMargin: "11px 10px 0px 0px",
-                alignBottom: true,
-                //pixelOffset: new google.maps.Size(-152, -25)
+                closeBoxURL: "",
+                pixelOffset: new google.maps.Size(-115, -67)
             });
             
             this.hoverTooltip.open(this.map, marker);

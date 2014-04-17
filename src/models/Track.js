@@ -1,8 +1,9 @@
 (function( TRACKS )
 {
-	var Track = function (name, points, color, startMarkerUrl) {
+	var Track = function (name, points, elevationPoints, color, startMarkerUrl) {
         this.name = name
         this.points = points;
+        this.elevationPoints = [] || elevationPoints;
         this.color = color || "#D95642";
         this.startMarkerUrl = startMarkerUrl || "assets/images/marker.png";
         this.bounds = this.getBounds();

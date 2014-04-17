@@ -85,6 +85,7 @@
                 // open
                 jQuery("#search input").animate({left: 0}, 200, null);
                 jQuery("#search img").animate({left: "258px"}, 200, null);
+                jQuery("#search input").focus();
             }
         },
 		
