@@ -50,8 +50,12 @@
 		
 		register: function()
 		{
-			this.onMessage("centerMap", this.onCenterMap);
+            this.onMessage("setCenter", this.onSetCenter);
+			this.onMessage("setZoom", this.onSetZoom);
+            this.onMessage("fitMapToBounds", this.onFitMapToBounds);
             this.onMessage("tracksLoaded", this.onTracksLoaded);
+            this.onMessage("searchTracksNearLocation", this.onSearchTracksNearLocation);
+            this.onMessage("stateChanged", this.onStateChanged);
 		},
 		
 		render: function()
@@ -76,19 +80,28 @@
 			this.map = new google.maps.Map( this.renderContainer, mapOptions );
 			
 			//Add MapReady listener
-			var listener = google.maps.event.addListener( this.map, 'tilesloaded', TRACKS.bind( function( evt ) {
+			var listener = google.maps.event.addListener( this.map, 'tilesloaded', TRACKS.bind(function(evt) {
 				
+                this.tracksManager.getAllTracks();
 				this.sendMessage("mapReady");
 				
 				google.maps.event.removeListener(listener);
-			}, this ));
+			}, this));
 			
 			return this;
 		},
 		
-		centerAndZoom: function (center, zoom)
+		setZoom: function (zoom)
 		{
-			if ( !center || !center.lat || !center.lon || !zoom)
+			if (!zoom)
+				return;
+            
+			this.map.setZoom( zoom );
+		},
+        
+        setCenter: function (center) {
+            
+            if ( !center || !center.lat || !center.lon)
 				return;
             
             var theCenter = new google.maps.LatLng( center.lat, center.lon );
@@ -106,15 +119,14 @@
                 });
             }
 			
-			this.map.setCenter( theCenter );
-			this.map.setZoom( zoom );
-		},
+			this.map.setCenter(theCenter);
+        },
 		
 		createMarker: function (markerInfo)
 		{
 			return new google.maps.Marker({
 				map: this.map,
-				animation: google.maps.Animation.DROP,
+				//animation: google.maps.Animation.DROP,
 				icon: markerInfo.url,
 				position: new google.maps.LatLng( markerInfo.position.lat, markerInfo.position.lon )
 			});
@@ -125,7 +137,7 @@
                 var track = tracks[i];
                 var marker = new google.maps.Marker({
                     map: this.map,
-                    animation: google.maps.Animation.DROP,
+                    //animation: google.maps.Animation.DROP,
                     icon: track.startMarkerUrl,
                     position: track.getStartTrackPoint()
                 });
@@ -138,19 +150,16 @@
             this.enableClustering();
         },
         
+        removeTracks: function () {
+            for (var i = 0; i < this.markers; i++) {
+                this.markers[i].setMap(null);
+            }
+        },
+        
         addStartTrackMarkerListeners: function (marker) {
             // Toggle track visibility on track marker click
              google.maps.event.addListener(marker, 'click', function () {
-
-                 if (this.track.isVisible) {
-                    this.setVisible(true);
-                    this.track.mapTrack.setMap(null);
-                    this.track.isVisible = false;
-                 } else {
-                    this.track.mapTrack.setMap(this.map);
-                    this.map.fitBounds(this.track.bounds);
-                    this.track.isVisible = true;
-                 }
+                 this.onTrackMarkerClick(marker);
              });
 
             google.maps.event.addListener(marker, 'mouseover', TRACKS.bind(function (evt) {
@@ -166,12 +175,44 @@
         
         enableClustering: function()
 		{
+            this.disableClustering();
+            
 			this.markerCluster = new MarkerClusterer(this.map, this.markers, {
 				styles: this.clusterOptions.styles,
 				gridSize: this.clusterOptions.gridSize,
 				maxZoom: this.clusterOptions.maxZoom
 			});
 		},
+        
+        disableClustering: function () {
+            if (this.markerCluster) {
+                return this.markerCluster.getMarkers();
+            }
+        },
+        
+        searchTracksNearLocation: function (location, searchRadius) {
+            // Establish search location bounds
+            var center = new google.maps.LatLng(location.lat, location.lon);
+            var centerBounds = new google.maps.LatLngBounds(new google.maps.LatLng(location.bounds[0], location.bounds[1]), new google.maps.LatLng(location.bounds[2], location.bounds[3]));
+            
+            //Establish search area bounds
+            var ne = this.geoOperations.getPointAtDistanceFromPoint(center, 45, searchRadius);
+            var se = this.geoOperations.getPointAtDistanceFromPoint(center, 135, searchRadius);
+            var sw = this.geoOperations.getPointAtDistanceFromPoint(center, 245, searchRadius);
+            
+            var searchBounds = new google.maps.LatLngBounds(sw, ne);
+            searchBounds.extend(se);
+            var tracksInBounds = this.geoOperations.getTracksInBounds(this.markers, searchBounds);
+            
+            this.removeTracks();
+            
+            if (tracksInBounds && tracksInBounds.length > 0) {
+                this.map.fitBounds(searchBounds);
+                this.addTracks(tracksInBounds);
+            } else {
+                this.map.fitBounds(centerBounds);
+            }
+        },
         
 		/*
 		 * Messages
@@ -197,6 +238,7 @@
         
         onTracksLoaded: function (msg) {
             this.addTracks(msg);
+            this.map.fitBounds(this.tracksManager.getTracksBounds());
         },
 		
 		onCenterMap: function( msg )
@@ -207,10 +249,61 @@
 				lon: msg.lon
 			}, this.zoom);
 		},
+        
+        onFitMapToBounds: function (bounds) {
+            this.map.fitBounds(bounds);
+        },
+        
+        onSetCenter: function (center) {
+            this.setCenter(center);
+            
+            
+        },
+        
+        onSetZoom: function (zoom) {
+            this.setZoom(zoom);
+        },
+        
+        onSearchTracksNearLocation: function (msg) {
+            if (!msg || !msg.location || !msg.searchRadius) {
+                return;
+            }
+            
+            this.setCenter(msg.location );
+            this.searchTracksNearLocation(msg.location, msg.searchRadius);
+        },
+        
+        onStateChanged: function (msg) {
+            if (msg.state == TRACKS.App.States.TRACK_INFO) {
+                //Disable clustering
+                this.disableClustering();
+            }
+            
+            if (msg.lastState == TRACKS.App.States.TRACK_INFO) {
+                //Enable clustering
+                this.enableClustering();
+            }
+        },
 		
 		/*
 		 * Events
 		 */
+        
+         onTrackMarkerClick: function (marker) {
+            if (marker.track.isVisible) {
+                //hide track, show marker
+                marker.track.mapTrack.setMap(null);
+                marker.setVisible(true);
+                marker.track.isVisible = false;
+             } else {
+                // show track, change state
+                marker.track.mapTrack.setMap(this.map);
+                this.map.fitBounds(marker.track.bounds);
+                marker.track.isVisible = true;
+                 
+                this.sendMessage("changeState", {state: TRACKS.App.States.TRACK_INFO});
+             }
+         },
         
         onTrackMarkerOver: function (marker) {
             var content = this.mustache(this.templates.tooltipTemplate, {

@@ -339,6 +339,16 @@
 		    });
 		},
         
+        getTracksBounds: function () {
+            var tracksBounds = new google.maps.LatLngBounds();
+            
+            for (var i = 0; i < this.tracks.length; i++) {
+                tracksBounds.union(this.tracks[i].bounds);
+            }
+            
+            return tracksBounds;
+        },
+        
         extractTrackData: function (parsedData) {
             jQuery.ajax({
                 url: parsedData.url,
@@ -442,6 +452,68 @@
 	
 })(TRACKS);
 
+(function(TRACKS)
+{
+    Number.prototype.toRad = function() {
+       return this * Math.PI / 180;
+    }
+
+    Number.prototype.toDeg = function() {
+       return this * 180 / Math.PI;
+    }
+    
+	var geoOperations = null;
+	var GeoOperations = new Class({
+		
+         getPointAtDistanceFromPoint : function (referencePoint, bearing, distance) {
+
+            distance = distance / 6371;  
+            bearing = bearing.toRad();  
+
+            var lat1 = referencePoint.lat().toRad(), lon1 = referencePoint.lng().toRad();
+
+            var lat2 = Math.asin(Math.sin(lat1) * Math.cos(distance) + Math.cos(lat1) * Math.sin(distance) * Math.cos(bearing));
+
+            var lon2 = lon1 + Math.atan2(Math.sin(bearing) * Math.sin(distance) * Math.cos(lat1), Math.cos(distance) - Math.sin(lat1) * Math.sin(lat2));
+
+            if (isNaN(lat2) || isNaN(lon2)) {
+                return null;
+            }
+
+            return new google.maps.LatLng(lat2.toDeg(), lon2.toDeg());
+        },
+        
+        getTracksInBounds: function (points, bounds) {
+            if (!points || !bounds || points.length == 0) {
+                return;
+            }
+            
+            var pointsInBounds = [];
+            
+            for (var i = 0; i < points.length; i++) {
+                if (bounds.contains(points[i].getPosition())) {
+                    pointsInBounds.push(points[i].track);
+                }
+            }
+            
+            return pointsInBounds;
+        }
+
+	});
+	
+	GeoOperations.getInstance = function () {
+		if( geoOperations )
+			return geoOperations;
+		
+		geoOperations = new GeoOperations();
+		return geoOperations;
+	};
+	
+	TRACKS.GeoOperations = GeoOperations;
+	
+})(TRACKS);
+
+
 (function( TRACKS )
 {
 	var View = TRACKS.MsgManager.extend({
@@ -461,6 +533,7 @@
 			this.formatRenderData = cfg.formatRenderData;
 			this.dataManager = TRACKS.DataManager.getInstance();
             this.tracksManager = TRACKS.TracksManager.getInstance();
+            this.geoOperations = TRACKS.GeoOperations.getInstance();
 			this.ajax = TRACKS.AjaxManager.getInstance();
 			
 			this.events = TRACKS.extend( this.events || {}, cfg.events || {} );
@@ -552,8 +625,12 @@
 		
 		register: function()
 		{
-			this.onMessage("centerMap", this.onCenterMap);
+            this.onMessage("setCenter", this.onSetCenter);
+			this.onMessage("setZoom", this.onSetZoom);
+            this.onMessage("fitMapToBounds", this.onFitMapToBounds);
             this.onMessage("tracksLoaded", this.onTracksLoaded);
+            this.onMessage("searchTracksNearLocation", this.onSearchTracksNearLocation);
+            this.onMessage("stateChanged", this.onStateChanged);
 		},
 		
 		render: function()
@@ -578,19 +655,28 @@
 			this.map = new google.maps.Map( this.renderContainer, mapOptions );
 			
 			//Add MapReady listener
-			var listener = google.maps.event.addListener( this.map, 'tilesloaded', TRACKS.bind( function( evt ) {
+			var listener = google.maps.event.addListener( this.map, 'tilesloaded', TRACKS.bind(function(evt) {
 				
+                this.tracksManager.getAllTracks();
 				this.sendMessage("mapReady");
 				
 				google.maps.event.removeListener(listener);
-			}, this ));
+			}, this));
 			
 			return this;
 		},
 		
-		centerAndZoom: function (center, zoom)
+		setZoom: function (zoom)
 		{
-			if ( !center || !center.lat || !center.lon || !zoom)
+			if (!zoom)
+				return;
+            
+			this.map.setZoom( zoom );
+		},
+        
+        setCenter: function (center) {
+            
+            if ( !center || !center.lat || !center.lon)
 				return;
             
             var theCenter = new google.maps.LatLng( center.lat, center.lon );
@@ -608,15 +694,14 @@
                 });
             }
 			
-			this.map.setCenter( theCenter );
-			this.map.setZoom( zoom );
-		},
+			this.map.setCenter(theCenter);
+        },
 		
 		createMarker: function (markerInfo)
 		{
 			return new google.maps.Marker({
 				map: this.map,
-				animation: google.maps.Animation.DROP,
+				//animation: google.maps.Animation.DROP,
 				icon: markerInfo.url,
 				position: new google.maps.LatLng( markerInfo.position.lat, markerInfo.position.lon )
 			});
@@ -627,7 +712,7 @@
                 var track = tracks[i];
                 var marker = new google.maps.Marker({
                     map: this.map,
-                    animation: google.maps.Animation.DROP,
+                    //animation: google.maps.Animation.DROP,
                     icon: track.startMarkerUrl,
                     position: track.getStartTrackPoint()
                 });
@@ -640,19 +725,16 @@
             this.enableClustering();
         },
         
+        removeTracks: function () {
+            for (var i = 0; i < this.markers; i++) {
+                this.markers[i].setMap(null);
+            }
+        },
+        
         addStartTrackMarkerListeners: function (marker) {
             // Toggle track visibility on track marker click
              google.maps.event.addListener(marker, 'click', function () {
-
-                 if (this.track.isVisible) {
-                    this.setVisible(true);
-                    this.track.mapTrack.setMap(null);
-                    this.track.isVisible = false;
-                 } else {
-                    this.track.mapTrack.setMap(this.map);
-                    this.map.fitBounds(this.track.bounds);
-                    this.track.isVisible = true;
-                 }
+                 this.onTrackMarkerClick(marker);
              });
 
             google.maps.event.addListener(marker, 'mouseover', TRACKS.bind(function (evt) {
@@ -668,12 +750,44 @@
         
         enableClustering: function()
 		{
+            this.disableClustering();
+            
 			this.markerCluster = new MarkerClusterer(this.map, this.markers, {
 				styles: this.clusterOptions.styles,
 				gridSize: this.clusterOptions.gridSize,
 				maxZoom: this.clusterOptions.maxZoom
 			});
 		},
+        
+        disableClustering: function () {
+            if (this.markerCluster) {
+                return this.markerCluster.getMarkers();
+            }
+        },
+        
+        searchTracksNearLocation: function (location, searchRadius) {
+            // Establish search location bounds
+            var center = new google.maps.LatLng(location.lat, location.lon);
+            var centerBounds = new google.maps.LatLngBounds(new google.maps.LatLng(location.bounds[0], location.bounds[1]), new google.maps.LatLng(location.bounds[2], location.bounds[3]));
+            
+            //Establish search area bounds
+            var ne = this.geoOperations.getPointAtDistanceFromPoint(center, 45, searchRadius);
+            var se = this.geoOperations.getPointAtDistanceFromPoint(center, 135, searchRadius);
+            var sw = this.geoOperations.getPointAtDistanceFromPoint(center, 245, searchRadius);
+            
+            var searchBounds = new google.maps.LatLngBounds(sw, ne);
+            searchBounds.extend(se);
+            var tracksInBounds = this.geoOperations.getTracksInBounds(this.markers, searchBounds);
+            
+            this.removeTracks();
+            
+            if (tracksInBounds && tracksInBounds.length > 0) {
+                this.map.fitBounds(searchBounds);
+                this.addTracks(tracksInBounds);
+            } else {
+                this.map.fitBounds(centerBounds);
+            }
+        },
         
 		/*
 		 * Messages
@@ -699,6 +813,7 @@
         
         onTracksLoaded: function (msg) {
             this.addTracks(msg);
+            this.map.fitBounds(this.tracksManager.getTracksBounds());
         },
 		
 		onCenterMap: function( msg )
@@ -709,10 +824,61 @@
 				lon: msg.lon
 			}, this.zoom);
 		},
+        
+        onFitMapToBounds: function (bounds) {
+            this.map.fitBounds(bounds);
+        },
+        
+        onSetCenter: function (center) {
+            this.setCenter(center);
+            
+            
+        },
+        
+        onSetZoom: function (zoom) {
+            this.setZoom(zoom);
+        },
+        
+        onSearchTracksNearLocation: function (msg) {
+            if (!msg || !msg.location || !msg.searchRadius) {
+                return;
+            }
+            
+            this.setCenter(msg.location );
+            this.searchTracksNearLocation(msg.location, msg.searchRadius);
+        },
+        
+        onStateChanged: function (msg) {
+            if (msg.state == TRACKS.App.States.TRACK_INFO) {
+                //Disable clustering
+                this.disableClustering();
+            }
+            
+            if (msg.lastState == TRACKS.App.States.TRACK_INFO) {
+                //Enable clustering
+                this.enableClustering();
+            }
+        },
 		
 		/*
 		 * Events
 		 */
+        
+         onTrackMarkerClick: function (marker) {
+            if (marker.track.isVisible) {
+                //hide track, show marker
+                marker.track.mapTrack.setMap(null);
+                marker.setVisible(true);
+                marker.track.isVisible = false;
+             } else {
+                // show track, change state
+                marker.track.mapTrack.setMap(this.map);
+                this.map.fitBounds(marker.track.bounds);
+                marker.track.isVisible = true;
+                 
+                this.sendMessage("changeState", {state: TRACKS.App.States.TRACK_INFO});
+             }
+         },
         
         onTrackMarkerOver: function (marker) {
             var content = this.mustache(this.templates.tooltipTemplate, {
@@ -737,7 +903,7 @@
 	
 }(TRACKS));
 
-(function( TRACKS )
+(function(TRACKS)
 {
 	var INPUT_SELECTOR = "#search-input";
 	
@@ -751,6 +917,10 @@
 			"#search-input": {
 				keyup: "onKeyUp"
 			},
+            
+            "#suggestions a": {
+				click: "onSuggestionClick"
+			}
 		},
 		
 		init: function( cfg ) {
@@ -758,7 +928,9 @@
 			// Call super
 			this._parent( cfg );
 			
-			this.dataManager.on( 'userGeocoded', TRACKS.bind( this.onUserGeocoded, this) );
+            this.searchRadius = cfg.searchRadius || 100;
+            
+			this.dataManager.on('userGeocoded', TRACKS.bind( this.onUserGeocoded, this));
 		},
 		
 		register: function()
@@ -768,8 +940,8 @@
 		
 		render: function()
 		{
-			this.container.innerHTML = this.mustache( this.templates.main, {});
-			
+			this.container.innerHTML = this.mustache(this.templates.main, {});
+			this.toggleSearchInput();
 			return this;
 		},
 		
@@ -778,7 +950,7 @@
 			TRACKS.one(INPUT_SELECTOR, this.container).focus();
 		},
 		 
-		search: function( value, multipleResults )
+		search: function(value)
 		{
 			this.searchInputText = value || this.getInputValue();
 			
@@ -790,20 +962,50 @@
 					
 					if ( addresses.length == 0 )
 						return;
-					
-					var addressName = addresses[0].address;
-					var addressLat = addresses[0].lat;
-					var addressLon = addresses[0].lon;
-					
-                     this.tracksManager.getAllTracks();
                     
-					this.setInputValue( addressName );
-					this.sendMessage("centerMap", {lat: addressLat, lon: addressLon});
+                    var suggestions = [];
+
+                    // Take into consideration first 3 suggestions
+                    for (var i = 0; i < 3; i++) {
+                        if (addresses[i]) {
+                            suggestions.push(addresses[i]);
+                        }
+                    }
+
+                    this.addSuggestions(suggestions);
+					
 				}, this)
 			})
 		},
+        
+        addSuggestions: function (suggestions) {
+            if (!suggestions || suggestions.length == 0) {
+                return;
+            }
+			
+            this.suggestions = suggestions;
+            var suggestionsContainer = TRACKS.one( "#suggestions", this.container );
+            
+            suggestionsContainer.innerHTML = this.mustache( this.templates.suggestions, { 
+				suggestions: suggestions,
+			});
+			
+            // Make suggestions visible
+			TRACKS.css(suggestionsContainer, 'display', 'block');
+        },
+        
+        removeSuggestions: function () {
+            var suggestionsContainer = TRACKS.one( "#suggestions", this.container );
+            suggestionsContainer.innerHTML = "";
+            
+            // Hide suggestions
+			TRACKS.css(suggestionsContainer, 'display', 'none');
+            
+            //Clear suggestions
+            this.suggestions = [];
+        },
 		
-		setInputValue: function( value )
+		setInputValue: function(value)
 		{
 			TRACKS.one( INPUT_SELECTOR, this.container ).value = value;
 		},
@@ -817,14 +1019,16 @@
             var isOpen = jQuery("#search input").css("left") == "0px" ? true : false;
             
             if (isOpen) {
+                this.removeSuggestions();
+                
                 // close
                 jQuery("#search input").animate({left: "-=258px"}, 200, null);
-                jQuery("#search img").animate({left: "-5px"}, 200, null);
+                jQuery("#search img").animate({left: 0}, 200, null);
             } else {
                 // open
                 jQuery("#search input").animate({left: 0}, 200, null);
                 jQuery("#search img").animate({left: "258px"}, 200, null);
-                jQuery("#search input").focus();
+                this.focus();
             }
         },
 		
@@ -836,17 +1040,35 @@
 			this.toggleSearchInput();
 		},
 		
-		onKeyUp: function( evt )
+		onKeyUp: function(evt)
 		{
-			if( evt.keyCode == 13)
-				this.search();
+            var searchText = this.getInputValue();
+            
+            if (searchText.length > 2) {
+                this.search();
+            } else if (searchText.length == 0) {
+                this.removeSuggestions();
+            }
 		},
+        
+        onSuggestionClick: function (evt) {
+            var index = evt.target.id.split('-')[1];
+			var suggestion = this.suggestions[index];
+			
+			this.setInputValue( suggestion.address );
+			this.removeSuggestions();
+            
+            this.sendMessage("changeState", {state: TRACKS.App.States.SEARCH});
+            this.sendMessage("searchTracksNearLocation", {
+                location: suggestion,
+                searchRadius: this.searchRadius
+            });
+        },
 		
 		/*
 		 * Messages
 		 */
-		
-		onUserGeocoded: function( msg )
+		onUserGeocoded: function(msg)
 		{
 			if ( !msg || !msg.address )
 				return;
@@ -859,6 +1081,51 @@
 	
 	// Publish
 	TRACKS.SearchView = SearchView;
+	
+}(TRACKS));
+
+(function(TRACKS)
+{
+	var ListView = TRACKS.View.extend({
+		
+		events: {
+			
+		},
+		
+		init: function( cfg ) {
+			
+			// Call super
+			this._parent( cfg );
+			
+			this.dataManager.on('userGeocoded', TRACKS.bind( this.onUserGeocoded, this));
+		},
+		
+		register: function()
+		{
+			//this.onMessage("stateChanged", this.onStateChanged);
+		},
+		
+		render: function()
+		{
+			this.container.innerHTML = this.mustache(this.templates.main, {});
+			
+			return this;
+		},
+		
+		/*
+		 * Events
+		 */
+		
+		
+		/*
+		 * Messages
+		 */
+		
+		
+	});
+	
+	// Publish
+	TRACKS.ListView = ListView;
 	
 }(TRACKS));
 
@@ -995,8 +1262,9 @@
 	TRACKS.App = TracksApp;
 	
 	TRACKS.App.States = {};
-	TRACKS.App.States.MAP = 'map';
-	TRACKS.App.States.INFO = 'info';
+    TRACKS.App.States.DEFAULT = 'default';
+	TRACKS.App.States.SEARCH = 'search';
+	TRACKS.App.States.TRACK_INFO = 'trackinfo';
 	
 }(TRACKS));
 

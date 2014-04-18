@@ -131,7 +131,8 @@
 	TRACKS.App = TracksApp;
 	
 	TRACKS.App.States = {};
-	TRACKS.App.States.MAP = 'map';
-	TRACKS.App.States.INFO = 'info';
+    TRACKS.App.States.DEFAULT = 'default';
+	TRACKS.App.States.SEARCH = 'search';
+	TRACKS.App.States.TRACK_INFO = 'trackinfo';
 	
 }(TRACKS));

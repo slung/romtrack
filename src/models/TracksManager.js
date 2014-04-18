@@ -29,6 +29,16 @@
 		    });
 		},
         
+        getTracksBounds: function () {
+            var tracksBounds = new google.maps.LatLngBounds();
+            
+            for (var i = 0; i < this.tracks.length; i++) {
+                tracksBounds.union(this.tracks[i].bounds);
+            }
+            
+            return tracksBounds;
+        },
+        
         extractTrackData: function (parsedData) {
             jQuery.ajax({
                 url: parsedData.url,
