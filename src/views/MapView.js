@@ -158,9 +158,9 @@
         
         addStartTrackMarkerListeners: function (marker) {
             // Toggle track visibility on track marker click
-             google.maps.event.addListener(marker, 'click', function () {
+             google.maps.event.addListener(marker, 'click', TRACKS.bind(function () {
                  this.onTrackMarkerClick(marker);
-             });
+             }, this));
 
             google.maps.event.addListener(marker, 'mouseover', TRACKS.bind(function (evt) {
                 this.onTrackMarkerOver(marker);
@@ -186,7 +186,7 @@
         
         disableClustering: function () {
             if (this.markerCluster) {
-                return this.markerCluster.getMarkers();
+                return this.markerCluster.clearMarkers();
             }
         },
         
@@ -274,7 +274,7 @@
         },
         
         onStateChanged: function (msg) {
-            if (msg.state == TRACKS.App.States.TRACK_INFO) {
+            if (msg.currentState == TRACKS.App.States.TRACK_INFO) {
                 //Disable clustering
                 this.disableClustering();
             }
