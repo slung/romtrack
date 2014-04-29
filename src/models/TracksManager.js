@@ -5,11 +5,12 @@
 		
         tracksRegistrar: "assets/tracks/tracks-registrar.txt",
         tracks: [],
+        allTracks: [],
         trackCounter: 0,
         expectedNbOfTracks: 0,
         
         // Assume only GPX format tracks
-		getAllTracks: function( success, error )
+		getTracksFromDataSource: function( success, error )
 		{
             this.trackCounter = 0;
             this.expectedNbOfTracks = 0;
@@ -23,30 +24,30 @@
                     this.expectedNbOfTracks = parsedData.length;
                     
                     for (var i = 0; i < parsedData.length; i++) {
-                        this.extractTrackData(parsedData[i]);
+                        this.extractTrackData(parsedData[i], i);
                     }
 		    	}, this)
 		    });
 		},
         
-        getTracksBounds: function () {
-            var tracksBounds = new google.maps.LatLngBounds();
-            
+        getTrackByIndex: function (index) {
             for (var i = 0; i < this.tracks.length; i++) {
-                tracksBounds.union(this.tracks[i].bounds);
+                if (this.tracks[i].index == index) {
+                    return this.tracks[i];
+                }
             }
             
-            return tracksBounds;
+            return null;
         },
         
-        extractTrackData: function (parsedData) {
+        extractTrackData: function (parsedData, trackIndex) {
             jQuery.ajax({
                 url: parsedData.url,
                 type: 'GET',
                 dataType: "xml",
                 success: TRACKS.bind(function(gpxData){
                     var trackData = this.trackPointsFromGPX(gpxData);
-                    this.saveTrack(parsedData.name, trackData.trackPoints, trackData.elevationPoints);
+                    this.saveTrack(parsedData.name, trackData.trackPoints, trackData.elevationPoints, trackIndex);
                     this.trackCounter++;
 
                     if (this.trackCounter == this.expectedNbOfTracks) {
@@ -56,8 +57,10 @@
             });
         },
         
-        saveTrack: function(name, trackPoints, elevationPoints) {
-            this.tracks.push(new TRACKS.Track(name, trackPoints, elevationPoints));
+        saveTrack: function(name, trackPoints, elevationPoints, trackIndex) {
+            var track = new TRACKS.Track(name, trackPoints, elevationPoints, trackIndex);
+            this.tracks.push(track);
+            this.allTracks.push(track);
         },
         
         trackPointsFromGPX: function (gpxData) {
@@ -80,7 +83,9 @@
                 var ep = jQuery(this).children("ele").text();
 
                 trackPoints.push(p);
-                elevationPoints.push(ep);
+                if (ep != "0") {
+                    elevationPoints.push(parseInt(ep));
+                }
             });
             
             return {trackPoints: trackPoints, elevationPoints: elevationPoints};

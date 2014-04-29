@@ -56,6 +56,11 @@
             this.onMessage("tracksLoaded", this.onTracksLoaded);
             this.onMessage("searchTracksNearLocation", this.onSearchTracksNearLocation);
             this.onMessage("stateChanged", this.onStateChanged);
+            this.onMessage("showTrackHoverTooltip", this.onShowTrackHoverTooltip);
+            this.onMessage("selectTrack", this.onSelectTrack);
+            this.onMessage("showElevationMarker", this.onShowElevationMarker);
+            this.onMessage("hideElevationMarker", this.onHideElevationMarker);
+            this.onMessage("panBy", this.onPanBy);
 		},
 		
 		render: function()
@@ -82,11 +87,14 @@
 			//Add MapReady listener
 			var listener = google.maps.event.addListener( this.map, 'tilesloaded', TRACKS.bind(function(evt) {
 				
-                this.tracksManager.getAllTracks();
+                this.tracksManager.getTracksFromDataSource();
 				this.sendMessage("mapReady");
 				
 				google.maps.event.removeListener(listener);
 			}, this));
+            
+            //Add bounds changed event listener
+            google.maps.event.addListener(this.map, "bounds_changed", TRACKS.bind(this.onBoundsChanged, this));
 			
 			return this;
 		},
@@ -143,15 +151,16 @@
                 });
 
                 marker.track = track;
+                track.marker = marker;
                 this.addStartTrackMarkerListeners(marker);
                 this.markers.push(marker);
             }
             
-            this.enableClustering();
+            //this.enableClustering();
         },
         
         removeTracks: function () {
-            for (var i = 0; i < this.markers; i++) {
+            for (var i = 0; i < this.markers.length; i++) {
                 this.markers[i].setMap(null);
             }
         },
@@ -173,46 +182,49 @@
             }, this));
         },
         
-        enableClustering: function()
-		{
-            this.disableClustering();
-            
-			this.markerCluster = new MarkerClusterer(this.map, this.markers, {
-				styles: this.clusterOptions.styles,
-				gridSize: this.clusterOptions.gridSize,
-				maxZoom: this.clusterOptions.maxZoom
-			});
-		},
-        
-        disableClustering: function () {
-            if (this.markerCluster) {
-                return this.markerCluster.clearMarkers();
+        selectTrack: function (track) {
+            if (!track) {
+                return;
             }
+            
+            //Close hover tooltip if open
+            if (this.hoverTooltip) {
+                this.hoverTooltip.close();
+            }
+            
+            if (this.lastTrack) {
+                this.lastTrack.mapTrack.setMap(null);
+                
+                if (this.lastTrack.index == track.index) {
+                    return;
+                }
+            }
+            
+            // show track, change state
+            track.mapTrack.setMap(this.map);
+            this.map.fitBounds(track.bounds);
+            this.sendMessage("showElevationProfile", track);
+
+            this.lastTrack = track;
+            this.sendMessage("changeState", {state: TRACKS.App.States.TRACK_INFO});
         },
         
-        searchTracksNearLocation: function (location, searchRadius) {
-            // Establish search location bounds
-            var center = new google.maps.LatLng(location.lat, location.lon);
-            var centerBounds = new google.maps.LatLngBounds(new google.maps.LatLng(location.bounds[0], location.bounds[1]), new google.maps.LatLng(location.bounds[2], location.bounds[3]));
-            
-            //Establish search area bounds
-            var ne = this.geoOperations.getPointAtDistanceFromPoint(center, 45, searchRadius);
-            var se = this.geoOperations.getPointAtDistanceFromPoint(center, 135, searchRadius);
-            var sw = this.geoOperations.getPointAtDistanceFromPoint(center, 245, searchRadius);
-            
-            var searchBounds = new google.maps.LatLngBounds(sw, ne);
-            searchBounds.extend(se);
-            var tracksInBounds = this.geoOperations.getTracksInBounds(this.markers, searchBounds);
-            
-            this.removeTracks();
-            
-            if (tracksInBounds && tracksInBounds.length > 0) {
-                this.map.fitBounds(searchBounds);
-                this.addTracks(tracksInBounds);
-            } else {
-                this.map.fitBounds(centerBounds);
-            }
-        },
+//        enableClustering: function()
+//		{
+//            this.disableClustering();
+//            
+//			this.markerCluster = new MarkerClusterer(this.map, this.markers, {
+//				styles: this.clusterOptions.styles,
+//				gridSize: this.clusterOptions.gridSize,
+//				maxZoom: this.clusterOptions.maxZoom
+//			});
+//		},
+//        
+//        disableClustering: function () {
+//            if (this.markerCluster) {
+//                return this.markerCluster.clearMarkers();
+//            }
+//        },
         
 		/*
 		 * Messages
@@ -222,10 +234,8 @@
 			if ( !msg || !msg.lat || !msg.lon )
 				return;
             
-            this.centerAndZoom( {
-				lat: msg.lat,
-				lon: msg.lon
-			}, this.zoom );
+            this.setCenter(msg);
+            this.setZoom(this.zoom);
 		},
 		
 		/*
@@ -237,18 +247,13 @@
 		},
         
         onTracksLoaded: function (msg) {
+            this.removeTracks();
             this.addTracks(msg);
-            this.map.fitBounds(this.tracksManager.getTracksBounds());
+            
+            if (this.app.state == TRACKS.App.States.SEARCH) {
+                this.map.fitBounds(this.geoOperations.getTracksStartPointBounds(msg));
+            }
         },
-		
-		onCenterMap: function( msg )
-		{
-			//Center and zoom map
-			this.centerAndZoom({
-				lat: msg.lat,
-				lon: msg.lon
-			}, this.zoom);
-		},
         
         onFitMapToBounds: function (bounds) {
             this.map.fitBounds(bounds);
@@ -256,8 +261,6 @@
         
         onSetCenter: function (center) {
             this.setCenter(center);
-            
-            
         },
         
         onSetZoom: function (zoom) {
@@ -276,13 +279,47 @@
         onStateChanged: function (msg) {
             if (msg.currentState == TRACKS.App.States.TRACK_INFO) {
                 //Disable clustering
-                this.disableClustering();
+                //this.disableClustering();
             }
             
             if (msg.lastState == TRACKS.App.States.TRACK_INFO) {
                 //Enable clustering
-                this.enableClustering();
+                //this.enableClustering();
             }
+        },
+        
+        onShowTrackHoverTooltip: function (track) {
+            this.onTrackMarkerOver(track.marker);
+        },
+        
+        onSelectTrack: function (track) {
+            this.selectTrack(track);
+        },
+        
+        onShowElevationMarker: function (info) {
+            if (!info || !info.position) {
+                return;
+            }
+            
+            if (this.elevationMarker) {
+                this.elevationMarker.setMap(null);
+            }
+            
+            this.elevationMarker = this.createMarker(info);
+        },
+        
+        onHideElevationMarker: function () {
+            if (this.elevationMarker) {
+                this.elevationMarker.setMap(null);
+            }
+        },
+        
+        onPanBy: function (offset) {
+            if (!offset) {
+                return;
+            }
+            
+            this.map.panBy(offset.x, offset.y);
         },
 		
 		/*
@@ -290,35 +327,43 @@
 		 */
         
          onTrackMarkerClick: function (marker) {
-            if (marker.track.isVisible) {
-                //hide track, show marker
-                marker.track.mapTrack.setMap(null);
-                marker.setVisible(true);
-                marker.track.isVisible = false;
-             } else {
-                // show track, change state
-                marker.track.mapTrack.setMap(this.map);
-                this.map.fitBounds(marker.track.bounds);
-                marker.track.isVisible = true;
-                 
-                this.sendMessage("changeState", {state: TRACKS.App.States.TRACK_INFO});
-             }
+             this.selectTrack(marker.track);
          },
         
         onTrackMarkerOver: function (marker) {
+//            if (this.app.state == TRACKS.App.States.TRACK_INFO) {
+//                return;
+//            }
+            
+            if (this.hoverTooltip) {
+                this.hoverTooltip.close();
+            }
+            
             var content = this.mustache(this.templates.tooltipTemplate, {
                 track: {
-                    name: marker.track.name
+                    name: marker.track.name,
+                    length: marker.track.length
                 }
             });
 
             this.hoverTooltip = new InfoBox({
                 content: content, 
                 closeBoxURL: "",
-                pixelOffset: new google.maps.Size(-115, -67)
+                pixelOffset: new google.maps.Size(-115, -80)
             });
             
             this.hoverTooltip.open(this.map, marker);
+        },
+        
+        onBoundsChanged: function () {
+            this.sendMessage("changeState", {state: TRACKS.App.States.DEFAULT});
+            
+            var tracksInBounds = this.geoOperations.getTracksInBounds(this.tracksManager.allTracks, this.map.getBounds());
+            
+            if (tracksInBounds && tracksInBounds.length > 0) {
+                this.tracksManager.tracks = tracksInBounds;
+                this.sendMessage("tracksLoaded", tracksInBounds);
+            }
         }
 
 	});

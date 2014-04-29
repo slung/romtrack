@@ -45,7 +45,7 @@
 			TRACKS.one(INPUT_SELECTOR, this.container).focus();
 		},
 		 
-		search: function(value)
+		searchLocationData: function(value)
 		{
 			this.searchInputText = value || this.getInputValue();
 			
@@ -72,6 +72,30 @@
 				}, this)
 			})
 		},
+        
+        search: function (location) {
+            this.sendMessage("changeState", {state: TRACKS.App.States.SEARCH});
+            
+            // Establish search location bounds
+            var center = new google.maps.LatLng(location.lat, location.lon);
+            var centerBounds = new google.maps.LatLngBounds(new google.maps.LatLng(location.bounds[0], location.bounds[1]), new google.maps.LatLng(location.bounds[2], location.bounds[3]));
+            
+            //Establish search area bounds
+            var ne = this.geoOperations.getPointAtDistanceFromPoint(center, 45, this.searchRadius);
+            var se = this.geoOperations.getPointAtDistanceFromPoint(center, 135, this.searchRadius);
+            var sw = this.geoOperations.getPointAtDistanceFromPoint(center, 245, this.searchRadius);
+            
+            var searchBounds = new google.maps.LatLngBounds(sw, ne);
+            searchBounds.extend(se);
+            var tracksInBounds = this.geoOperations.getTracksInBounds(this.tracksManager.tracks, searchBounds);
+            
+            if (tracksInBounds && tracksInBounds.length > 0) {
+                this.tracksManager.tracks = tracksInBounds;
+                this.sendMessage("tracksLoaded", tracksInBounds);
+            } else {
+                this.sendMessage("fitMapToBounds", centerBounds);
+            }
+        },
         
         addSuggestions: function (suggestions) {
             if (!suggestions || suggestions.length == 0) {
@@ -117,12 +141,12 @@
                 this.removeSuggestions();
                 
                 // close
-                jQuery("#search input").animate({left: "-=258px"}, 200, null);
+                jQuery("#search input").animate({left: "-=310px"}, 200, null);
                 jQuery("#search img").animate({left: 0}, 200, null);
             } else {
                 // open
                 jQuery("#search input").animate({left: 0}, 200, null);
-                jQuery("#search img").animate({left: "258px"}, 200, null);
+                jQuery("#search img").animate({left: "310px"}, 200, null);
                 this.focus();
             }
         },
@@ -140,7 +164,7 @@
             var searchText = this.getInputValue();
             
             if (searchText.length > 2) {
-                this.search();
+                this.searchLocationData();
             } else if (searchText.length == 0) {
                 this.removeSuggestions();
             }
@@ -154,10 +178,7 @@
 			this.removeSuggestions();
             
             this.sendMessage("changeState", {state: TRACKS.App.States.SEARCH});
-            this.sendMessage("searchTracksNearLocation", {
-                location: suggestion,
-                searchRadius: this.searchRadius
-            });
+            this.search(suggestion);
         },
 		
 		/*

@@ -37,13 +37,33 @@
             var pointsInBounds = [];
             
             for (var i = 0; i < points.length; i++) {
-                if (bounds.contains(points[i].getPosition())) {
-                    pointsInBounds.push(points[i].track);
+                if (bounds.contains(points[i].marker.getPosition())) {
+                    pointsInBounds.push(points[i]);
                 }
             }
             
             return pointsInBounds;
-        }
+        },
+        
+        getTracksBounds: function (tracks) {
+            var tracksBounds = new google.maps.LatLngBounds();
+            
+            for (var i = 0; i < tracks.length; i++) {
+                tracksBounds.union(tracks[i].bounds);
+            }
+            
+            return tracksBounds;
+        },
+        
+        getTracksStartPointBounds: function (tracks) {
+            var bounds = new google.maps.LatLngBounds();
+            
+            for (var i = 0; i < tracks.length; i++) {
+                bounds.extend(tracks[i].getStartTrackPoint());
+            }
+            
+            return bounds;
+        } 
 
 	});
 	
