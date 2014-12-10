@@ -17,5 +17,8 @@
     }, {
         "name": "Fells Loop",
         "url": "assets/tracks/fells_loop.gpx"
+    }, {
+        "name": "Borsa - Vf. Pietrosul Rodnei",
+        "url": "assets/tracks/Borsa_Lacul_Iezer_Vf_Pietrosul_Rodnei.gpx"
     }
 ]
