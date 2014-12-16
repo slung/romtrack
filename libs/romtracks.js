@@ -329,6 +329,7 @@
 			jQuery.ajax({
 		    	url: this.tracksRegistrar,
 		    	type: 'GET',
+                crossDomain: true,
 		    	success: TRACKS.bind(function(data){
 		    		var parsedData = TRACKS.JSON.parse(data);
                     this.expectedNbOfTracks = parsedData.length;
@@ -355,9 +356,10 @@
                 url: parsedData.url,
                 type: 'GET',
                 dataType: "xml",
+                crossDomain: true,
                 success: TRACKS.bind(function(gpxData){
                     var trackData = this.trackPointsFromGPX(gpxData);
-                    this.saveTrack(parsedData.name, trackData.trackPoints, trackData.elevationPoints, trackIndex);
+                    this.saveTrack(parsedData.id, parsedData.name, trackData.trackPoints, trackData.elevationPoints, trackIndex);
                     this.trackCounter++;
 
                     if (this.trackCounter == this.expectedNbOfTracks) {
@@ -367,8 +369,8 @@
             });
         },
         
-        saveTrack: function(name, trackPoints, elevationPoints, trackIndex) {
-            var track = new TRACKS.Track(name, trackPoints, elevationPoints, trackIndex);
+        saveTrack: function(id, name, trackPoints, elevationPoints, trackIndex) {
+            var track = new TRACKS.Track(id, name, trackPoints, elevationPoints, trackIndex);
             this.tracks.push(track);
             this.allTracks.push(track);
         },
@@ -418,7 +420,8 @@
 
 (function( TRACKS )
 {
-	var Track = function (name, points, elevationPoints, index, color, startMarkerUrl) {
+	var Track = function (id, name, points, elevationPoints, index, color, startMarkerUrl) {
+        this.id = id;
         this.name = name
         this.points = points;
         this.elevationPoints = elevationPoints || [];

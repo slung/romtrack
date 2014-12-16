@@ -19,6 +19,7 @@
 			jQuery.ajax({
 		    	url: this.tracksRegistrar,
 		    	type: 'GET',
+                crossDomain: true,
 		    	success: TRACKS.bind(function(data){
 		    		var parsedData = TRACKS.JSON.parse(data);
                     this.expectedNbOfTracks = parsedData.length;
@@ -45,6 +46,7 @@
                 url: parsedData.url,
                 type: 'GET',
                 dataType: "xml",
+                crossDomain: true,
                 success: TRACKS.bind(function(gpxData){
                     var trackData = this.trackPointsFromGPX(gpxData);
                     this.saveTrack(parsedData.id, parsedData.name, trackData.trackPoints, trackData.elevationPoints, trackIndex);
