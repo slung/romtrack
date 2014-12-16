@@ -1,6 +1,7 @@
 (function( TRACKS )
 {
-	var Track = function (name, points, elevationPoints, index, color, startMarkerUrl) {
+	var Track = function (id, name, points, elevationPoints, index, color, startMarkerUrl) {
+        this.id = id;
         this.name = name
         this.points = points;
         this.elevationPoints = elevationPoints || [];
@@ -10,6 +11,10 @@
         this.bounds = this.getBounds();
         this.mapTrack = this.getMapTrack();
         this.length = this.getLength();
+        
+        var ascentDescent = this.getTotalAscentDescent();
+        this.ascent = ascentDescent.ascent;
+        this.descent = ascentDescent.descent;
     }
     
     Track.prototype = {
@@ -53,6 +58,28 @@
             distance = (distance/1000).toFixed(2);
             
             return parseFloat(distance);
+        },
+        
+        getTotalAscentDescent: function () {
+            if (!this.hasElevationProfile()) {
+                return null;
+            }
+            
+            var totalAscent = 0;
+            var totalDescent = 0;
+            
+            for (var i = 0; i < this.elevationPoints.length - 1; i++) {
+                if (this.elevationPoints[i] < this.elevationPoints[i+1]) {
+                    totalAscent += this.elevationPoints[i+1] - this.elevationPoints[i];
+                } else if (this.elevationPoints[i] > this.elevationPoints[i+1]) {
+                    totalDescent += this.elevationPoints[i] - this.elevationPoints[i+1]
+                }
+            }
+            
+            return {
+                ascent: Math.round(totalAscent),
+                descent: Math.round(totalDescent)
+            };
         }
     };
     

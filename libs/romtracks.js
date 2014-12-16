@@ -428,6 +428,10 @@
         this.bounds = this.getBounds();
         this.mapTrack = this.getMapTrack();
         this.length = this.getLength();
+        
+        var ascentDescent = this.getTotalAscentDescent();
+        this.ascent = ascentDescent.ascent;
+        this.descent = ascentDescent.descent;
     }
     
     Track.prototype = {
@@ -471,6 +475,28 @@
             distance = (distance/1000).toFixed(2);
             
             return parseFloat(distance);
+        },
+        
+        getTotalAscentDescent: function () {
+            if (!this.hasElevationProfile()) {
+                return null;
+            }
+            
+            var totalAscent = 0;
+            var totalDescent = 0;
+            
+            for (var i = 0; i < this.elevationPoints.length - 1; i++) {
+                if (this.elevationPoints[i] < this.elevationPoints[i+1]) {
+                    totalAscent += this.elevationPoints[i+1] - this.elevationPoints[i];
+                } else if (this.elevationPoints[i] > this.elevationPoints[i+1]) {
+                    totalDescent += this.elevationPoints[i] - this.elevationPoints[i+1]
+                }
+            }
+            
+            return {
+                ascent: Math.round(totalAscent),
+                descent: Math.round(totalDescent)
+            };
         }
     };
     
@@ -678,7 +704,7 @@
             this.onMessage("searchTracksNearLocation", this.onSearchTracksNearLocation);
             this.onMessage("stateChanged", this.onStateChanged);
             this.onMessage("showTrackHoverTooltip", this.onShowTrackHoverTooltip);
-            this.onMessage("selectTrack", this.onSelectTrack);
+            this.onMessage("selectTrackOnMap", this.onSelectTrack);
             this.onMessage("showElevationMarker", this.onShowElevationMarker);
             this.onMessage("hideElevationMarker", this.onHideElevationMarker);
             this.onMessage("panBy", this.onPanBy);
@@ -714,9 +740,6 @@
 				google.maps.event.removeListener(listener);
 			}, this));
             
-            //Add bounds changed event listener
-            google.maps.event.addListener(this.map, "bounds_changed", TRACKS.bind(this.onBoundsChanged, this));
-			
 			return this;
 		},
 		
@@ -782,6 +805,7 @@
         
         removeTracks: function () {
             for (var i = 0; i < this.markers.length; i++) {
+                this.markers[i].track.mapTrack.setMap(null);
                 this.markers[i].setMap(null);
             }
         },
@@ -813,12 +837,10 @@
                 this.hoverTooltip.close();
             }
             
-            if (this.lastTrack) {
-                this.lastTrack.mapTrack.setMap(null);
-                
-                if (this.lastTrack.index == track.index) {
-                    return;
-                }
+            this.deselectTrack(this.lastTrack);
+            
+            if (this.lastTrack && this.lastTrack.index == track.index) {
+                return;
             }
             
             // show track, change state
@@ -828,6 +850,15 @@
 
             this.lastTrack = track;
             this.sendMessage("changeState", {state: TRACKS.App.States.TRACK_INFO});
+        },
+        
+        deselectTrack: function (track) {
+            if (!track) {
+                return;
+            }
+            
+            track.mapTrack.setMap(null);
+            this.sendMessage("reverseState");
         },
         
 //        enableClustering: function()
@@ -871,7 +902,7 @@
             this.removeTracks();
             this.addTracks(msg);
             
-            if (this.app.state == TRACKS.App.States.SEARCH) {
+            if (this.app.state == TRACKS.App.States.SEARCH || this.app.state == TRACKS.App.States.DEFAULT) {
                 this.map.fitBounds(this.geoOperations.getTracksStartPointBounds(msg));
             }
         },
@@ -949,12 +980,13 @@
         
          onTrackMarkerClick: function (marker) {
              this.selectTrack(marker.track);
+             this.sendMessage("selectTrackInList", marker.track);
          },
         
         onTrackMarkerOver: function (marker) {
-//            if (this.app.state == TRACKS.App.States.TRACK_INFO) {
-//                return;
-//            }
+            if (this.app.state == TRACKS.App.States.TRACK_INFO) {
+                return;
+            }
             
             if (this.hoverTooltip) {
                 this.hoverTooltip.close();
@@ -974,17 +1006,6 @@
             });
             
             this.hoverTooltip.open(this.map, marker);
-        },
-        
-        onBoundsChanged: function () {
-            this.sendMessage("changeState", {state: TRACKS.App.States.DEFAULT});
-            
-            var tracksInBounds = this.geoOperations.getTracksInBounds(this.tracksManager.allTracks, this.map.getBounds());
-            
-            if (tracksInBounds && tracksInBounds.length > 0) {
-                this.tracksManager.tracks = tracksInBounds;
-                this.sendMessage("tracksLoaded", tracksInBounds);
-            }
         }
 
 	});
@@ -1017,7 +1038,7 @@
 		init: function( cfg ) {
 			
 			// Call super
-			this._parent( cfg );
+			this._parent(cfg);
 			
             this.searchRadius = cfg.searchRadius || 100;
             
@@ -1032,7 +1053,7 @@
 		render: function()
 		{
 			this.container.innerHTML = this.mustache(this.templates.main, {});
-			this.toggleSearchInput();
+			this.toggle();
 			return this;
 		},
 		
@@ -1045,8 +1066,9 @@
 		{
 			this.searchInputText = value || this.getInputValue();
 			
-			if (!this.searchInputText)
-				return;
+			if (!this.searchInputText) {
+                return;
+            }
 			
 			this.dataManager.geocode( this.searchInputText, true, {
 				success: TRACKS.bind( function( addresses ) {
@@ -1130,21 +1152,39 @@
 				return TRACKS.one( INPUT_SELECTOR, this.container ).value;
 		},
         
-        toggleSearchInput: function () {
-            var isOpen = jQuery("#search input").css("left") == "0px" ? true : false;
-            
-            if (isOpen) {
+        isOpen: function () {
+            return jQuery("#search input").css("left") == "0px" ? true : false;
+        },
+        
+        toggle: function () {
+            if (this.isOpen()) {
                 this.removeSuggestions();
                 
                 // close
-                jQuery("#search input").animate({left: "-=310px"}, 200, null);
-                jQuery("#search img").animate({left: 0}, 200, null);
+                this.close();
             } else {
                 // open
-                jQuery("#search input").animate({left: 0}, 200, null);
-                jQuery("#search img").animate({left: "310px"}, 200, null);
+                this.open();
                 this.focus();
             }
+        },
+        
+        open: function () {
+            if (this.isOpen()) {
+                return;
+            }
+            
+            jQuery("#search input").animate({left: 0}, 200, null);
+            jQuery("#search img").animate({left: "310px"}, 200, null);
+        },
+        
+        close: function () {
+            if (!this.isOpen()) {
+                return;
+            }
+            
+            jQuery("#search input").animate({left: "-=310px"}, 200, null);
+            jQuery("#search img").animate({left: 0}, 200, null);
         },
 		
 		/*
@@ -1152,7 +1192,7 @@
 		 */
 		onSearchIconClick: function(evt)
 		{
-			this.toggleSearchInput();
+			this.toggle();
 		},
 		
 		onKeyUp: function(evt)
@@ -1163,6 +1203,8 @@
                 this.searchLocationData();
             } else if (searchText.length == 0) {
                 this.removeSuggestions();
+                this.sendMessage("tracksLoaded", this.tracksManager.allTracks);
+                this.sendMessage("changeState", {state: TRACKS.App.States.DEFAULT});
             }
 		},
         
@@ -1186,7 +1228,7 @@
 				return;
 				
 			this.setInputValue( msg.address );
-            this.toggleSearchInput();
+            this.toggle();
 		}
 		
 	});
@@ -1208,7 +1250,7 @@
             "#list .track": {
                 click: "onTrackClick",
 				hover: "onTrackHover"
-			},
+			}
 		},
 		
 		init: function( cfg ) {
@@ -1222,6 +1264,7 @@
 		register: function()
 		{
 			this.onMessage("tracksLoaded", this.onTracksLoaded);
+            this.onMessage("selectTrackInList", this.onSelectTrack);
 		},
 		
 		render: function()
@@ -1271,7 +1314,6 @@
             
              //Select track on map
             var track = this.tracksManager.getTrackByIndex(index);
-            this.sendMessage("selectTrack", track);
             
             if (this.lastIndex == index) {
                 return;
@@ -1298,6 +1340,9 @@
             var index = parseInt(evt.currentTarget.id.split('-')[1]);
             
             this.selectTrack(index);
+            
+            var track = this.tracksManager.getTrackByIndex(index);
+            this.sendMessage("selectTrackOnMap", track);
         },
         
         onTrackHover: function (evt) {
@@ -1320,6 +1365,14 @@
             
             this.render();
             this.open();
+        },
+        
+        onSelectTrack: function (track) {
+            if (!track) {
+                return;
+            }
+            
+            this.selectTrack(track.index);
         }
 		
 	});
@@ -1359,6 +1412,8 @@
             var elevationData = this.generateElevationProfileData(track);
 
             var options = {
+                width: 700,
+                height: 170,
                 hAxis: {title: 'Distance (km)',  titleTextStyle: {color: '#333'}},
                 vAxis: {title: 'Altitude (m)', minValue: 0, titleTextStyle: {color: '#333'}},
                 legend: 'none'
@@ -1413,7 +1468,7 @@
             
             if (isOpen) {
                 this.sendMessage("panBy", {x: 0, y: -100});
-                jQuery("#elevation-profile").animate({bottom: "-=200px"}, 200, null);
+                jQuery("#elevation-profile").animate({bottom: "-=170px"}, 200, null);
             }
         },
 		

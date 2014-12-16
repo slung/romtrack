@@ -10,7 +10,7 @@
             "#list .track": {
                 click: "onTrackClick",
 				hover: "onTrackHover"
-			},
+			}
 		},
 		
 		init: function( cfg ) {
@@ -24,6 +24,7 @@
 		register: function()
 		{
 			this.onMessage("tracksLoaded", this.onTracksLoaded);
+            this.onMessage("selectTrackInList", this.onSelectTrack);
 		},
 		
 		render: function()
@@ -73,7 +74,6 @@
             
              //Select track on map
             var track = this.tracksManager.getTrackByIndex(index);
-            this.sendMessage("selectTrack", track);
             
             if (this.lastIndex == index) {
                 return;
@@ -100,6 +100,9 @@
             var index = parseInt(evt.currentTarget.id.split('-')[1]);
             
             this.selectTrack(index);
+            
+            var track = this.tracksManager.getTrackByIndex(index);
+            this.sendMessage("selectTrackOnMap", track);
         },
         
         onTrackHover: function (evt) {
@@ -122,6 +125,14 @@
             
             this.render();
             this.open();
+        },
+        
+        onSelectTrack: function (track) {
+            if (!track) {
+                return;
+            }
+            
+            this.selectTrack(track.index);
         }
 		
 	});

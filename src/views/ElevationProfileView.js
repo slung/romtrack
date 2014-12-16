@@ -28,6 +28,8 @@
             var elevationData = this.generateElevationProfileData(track);
 
             var options = {
+                width: 700,
+                height: 170,
                 hAxis: {title: 'Distance (km)',  titleTextStyle: {color: '#333'}},
                 vAxis: {title: 'Altitude (m)', minValue: 0, titleTextStyle: {color: '#333'}},
                 legend: 'none'
@@ -82,7 +84,7 @@
             
             if (isOpen) {
                 this.sendMessage("panBy", {x: 0, y: -100});
-                jQuery("#elevation-profile").animate({bottom: "-=200px"}, 200, null);
+                jQuery("#elevation-profile").animate({bottom: "-=170px"}, 200, null);
             }
         },
 		

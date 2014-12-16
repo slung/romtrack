@@ -21,7 +21,7 @@
 		init: function( cfg ) {
 			
 			// Call super
-			this._parent( cfg );
+			this._parent(cfg);
 			
             this.searchRadius = cfg.searchRadius || 100;
             
@@ -36,7 +36,7 @@
 		render: function()
 		{
 			this.container.innerHTML = this.mustache(this.templates.main, {});
-			this.toggleSearchInput();
+			this.toggle();
 			return this;
 		},
 		
@@ -49,8 +49,9 @@
 		{
 			this.searchInputText = value || this.getInputValue();
 			
-			if (!this.searchInputText)
-				return;
+			if (!this.searchInputText) {
+                return;
+            }
 			
 			this.dataManager.geocode( this.searchInputText, true, {
 				success: TRACKS.bind( function( addresses ) {
@@ -134,21 +135,39 @@
 				return TRACKS.one( INPUT_SELECTOR, this.container ).value;
 		},
         
-        toggleSearchInput: function () {
-            var isOpen = jQuery("#search input").css("left") == "0px" ? true : false;
-            
-            if (isOpen) {
+        isOpen: function () {
+            return jQuery("#search input").css("left") == "0px" ? true : false;
+        },
+        
+        toggle: function () {
+            if (this.isOpen()) {
                 this.removeSuggestions();
                 
                 // close
-                jQuery("#search input").animate({left: "-=310px"}, 200, null);
-                jQuery("#search img").animate({left: 0}, 200, null);
+                this.close();
             } else {
                 // open
-                jQuery("#search input").animate({left: 0}, 200, null);
-                jQuery("#search img").animate({left: "310px"}, 200, null);
+                this.open();
                 this.focus();
             }
+        },
+        
+        open: function () {
+            if (this.isOpen()) {
+                return;
+            }
+            
+            jQuery("#search input").animate({left: 0}, 200, null);
+            jQuery("#search img").animate({left: "310px"}, 200, null);
+        },
+        
+        close: function () {
+            if (!this.isOpen()) {
+                return;
+            }
+            
+            jQuery("#search input").animate({left: "-=310px"}, 200, null);
+            jQuery("#search img").animate({left: 0}, 200, null);
         },
 		
 		/*
@@ -156,7 +175,7 @@
 		 */
 		onSearchIconClick: function(evt)
 		{
-			this.toggleSearchInput();
+			this.toggle();
 		},
 		
 		onKeyUp: function(evt)
@@ -167,6 +186,8 @@
                 this.searchLocationData();
             } else if (searchText.length == 0) {
                 this.removeSuggestions();
+                this.sendMessage("tracksLoaded", this.tracksManager.allTracks);
+                this.sendMessage("changeState", {state: TRACKS.App.States.DEFAULT});
             }
 		},
         
@@ -190,7 +211,7 @@
 				return;
 				
 			this.setInputValue( msg.address );
-            this.toggleSearchInput();
+            this.toggle();
 		}
 		
 	});

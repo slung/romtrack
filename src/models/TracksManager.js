@@ -47,7 +47,7 @@
                 dataType: "xml",
                 success: TRACKS.bind(function(gpxData){
                     var trackData = this.trackPointsFromGPX(gpxData);
-                    this.saveTrack(parsedData.name, trackData.trackPoints, trackData.elevationPoints, trackIndex);
+                    this.saveTrack(parsedData.id, parsedData.name, trackData.trackPoints, trackData.elevationPoints, trackIndex);
                     this.trackCounter++;
 
                     if (this.trackCounter == this.expectedNbOfTracks) {
@@ -57,8 +57,8 @@
             });
         },
         
-        saveTrack: function(name, trackPoints, elevationPoints, trackIndex) {
-            var track = new TRACKS.Track(name, trackPoints, elevationPoints, trackIndex);
+        saveTrack: function(id, name, trackPoints, elevationPoints, trackIndex) {
+            var track = new TRACKS.Track(id, name, trackPoints, elevationPoints, trackIndex);
             this.tracks.push(track);
             this.allTracks.push(track);
         },

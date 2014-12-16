@@ -1,20 +1,26 @@
 [
     {
+        "id": "RO0001",
         "name": "Siria - Cladova",
         "url": "assets/tracks/Route_Siria_-_Cladova.gpx"
     }, {
+        "id": "RO0002",
         "name": "Baile Herculane - Crucea Alba",
         "url": "assets/tracks/Route_Herculane-_Crucea_Alba_-_Vf._Domogled.gpx"
     },{
+        "id": "RO0003",
         "name": "Cladova - Casoaia",
         "url": "assets/tracks/Route_Cladova_-_Casoaia.gpx"
     },{
+        "id": "RO0004",
         "name": "Cheile Scorota - Piatra Iorgovanului",
         "url": "assets/tracks/Route_Cheile_Scorota_-_Piatra_Iorgovanului.gpx"
     }, {
+        "id": "RO0005",
         "name": "Mehediniti: Crovul Mare",
         "url": "assets/tracks/Route_Cernei-Mehedinti-_Crovul_Mare.gpx"
     }, {
+        "id": "US0001",
         "name": "Fells Loop",
         "url": "assets/tracks/fells_loop.gpx"
     }, {
