@@ -27,26 +27,30 @@
 			
 			// Call super
 			this._parent( cfg );
-			
-			this.dataManager.on('userGeocoded', TRACKS.bind( this.onUserGeocoded, this));
+            this.noTracksMsg = cfg.noTracksMsg ? cfg.noTracksMsg : "No tracks found!"
 		},
 		
 		register: function()
 		{
 			this.onMessage("tracksLoaded", this.onTracksLoaded);
+            this.onMessage("noTracksLoaded", this.onNoTracksLoaded);
+            this.onMessage("closeList", this.onCloseList);
             this.onMessage("selectTrackInList", this.onSelectTrack);
 		},
 		
 		render: function()
 		{
             if (!this.tracks || this.tracks.length == 0) {
-                return;
+                this.container.innerHTML = this.mustache(this.templates.empty, {
+                    message: this.noTracksMsg
+                });
+            } else {
+                this.container.innerHTML = this.mustache(this.templates.main, {
+                    tracks: this.tracks,
+                    nbTracks: this.tracks.length
+                });
             }
             
-			this.container.innerHTML = this.mustache(this.templates.main, {
-                tracks: this.tracks,
-                nbTracks: this.tracks.length
-            });
 			
 			return this;
 		},
@@ -154,12 +158,21 @@
             this.open();
         },
         
+        onNoTracksLoaded: function () {
+            this.render();
+            this.open();
+        },
+        
         onSelectTrack: function (track) {
             if (!track) {
                 return;
             }
             
             this.selectTrack(track.index);
+        },
+        
+        onCloseList: function () {
+            this.close();
         },
         
         onLinksClick: function (evt) {

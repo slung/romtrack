@@ -363,7 +363,7 @@
                     this.trackCounter++;
 
                     if (this.trackCounter == this.expectedNbOfTracks) {
-                        TRACKS.dispatcher.fire("tracksLoaded", this.tracks);
+                        TRACKS.dispatcher.fire("tracksInitiated", this.tracks);
                     }
                 }, this)
             });
@@ -568,7 +568,7 @@
             var pointsInBounds = [];
             
             for (var i = 0; i < points.length; i++) {
-                if (bounds.contains(points[i].marker.getPosition())) {
+                if (bounds.contains(points[i].points[0]) || bounds.contains(points[i].points[points[i].points.length - 1])) {
                     pointsInBounds.push(points[i]);
                 }
             }
@@ -1157,6 +1157,7 @@
                 this.tracksManager.tracks = tracksInBounds;
                 this.sendMessage("tracksLoaded", tracksInBounds);
             } else {
+                this.sendMessage("noTracksLoaded");
                 this.sendMessage("fitMapToBounds", centerBounds);
             }
         },
@@ -1166,6 +1167,9 @@
                 return;
             }
 			
+            // Close list before showing suggestions
+            this.sendMessage("closeList");
+            
             this.suggestions = suggestions;
             var suggestionsContainer = TRACKS.one( "#suggestions", this.container );
             
@@ -1268,13 +1272,14 @@
 		/*
 		 * Messages
 		 */
-		onUserGeocoded: function(msg)
+		onUserGeocoded: function(location)
 		{
-			if ( !msg || !msg.address )
+			if ( !location || !location.address )
 				return;
 				
-			this.setInputValue( msg.address );
-            this.toggle();
+			this.setInputValue( location.address );
+            this.search(location);
+            this.open();
 		}
 		
 	});
@@ -1313,26 +1318,30 @@
 			
 			// Call super
 			this._parent( cfg );
-			
-			this.dataManager.on('userGeocoded', TRACKS.bind( this.onUserGeocoded, this));
+            this.noTracksMsg = cfg.noTracksMsg ? cfg.noTracksMsg : "No tracks found!"
 		},
 		
 		register: function()
 		{
 			this.onMessage("tracksLoaded", this.onTracksLoaded);
+            this.onMessage("noTracksLoaded", this.onNoTracksLoaded);
+            this.onMessage("closeList", this.onCloseList);
             this.onMessage("selectTrackInList", this.onSelectTrack);
 		},
 		
 		render: function()
 		{
             if (!this.tracks || this.tracks.length == 0) {
-                return;
+                this.container.innerHTML = this.mustache(this.templates.empty, {
+                    message: this.noTracksMsg
+                });
+            } else {
+                this.container.innerHTML = this.mustache(this.templates.main, {
+                    tracks: this.tracks,
+                    nbTracks: this.tracks.length
+                });
             }
             
-			this.container.innerHTML = this.mustache(this.templates.main, {
-                tracks: this.tracks,
-                nbTracks: this.tracks.length
-            });
 			
 			return this;
 		},
@@ -1440,12 +1449,21 @@
             this.open();
         },
         
+        onNoTracksLoaded: function () {
+            this.render();
+            this.open();
+        },
+        
         onSelectTrack: function (track) {
             if (!track) {
                 return;
             }
             
             this.selectTrack(track.index);
+        },
+        
+        onCloseList: function () {
+            this.close();
         },
         
         onLinksClick: function (evt) {

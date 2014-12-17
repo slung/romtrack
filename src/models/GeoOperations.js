@@ -37,7 +37,7 @@
             var pointsInBounds = [];
             
             for (var i = 0; i < points.length; i++) {
-                if (bounds.contains(points[i].marker.getPosition())) {
+                if (bounds.contains(points[i].points[0]) || bounds.contains(points[i].points[points[i].points.length - 1])) {
                     pointsInBounds.push(points[i]);
                 }
             }

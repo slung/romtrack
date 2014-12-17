@@ -95,6 +95,7 @@
                 this.tracksManager.tracks = tracksInBounds;
                 this.sendMessage("tracksLoaded", tracksInBounds);
             } else {
+                this.sendMessage("noTracksLoaded");
                 this.sendMessage("fitMapToBounds", centerBounds);
             }
         },
@@ -104,6 +105,9 @@
                 return;
             }
 			
+            // Close list before showing suggestions
+            this.sendMessage("closeList");
+            
             this.suggestions = suggestions;
             var suggestionsContainer = TRACKS.one( "#suggestions", this.container );
             
@@ -206,13 +210,14 @@
 		/*
 		 * Messages
 		 */
-		onUserGeocoded: function(msg)
+		onUserGeocoded: function(location)
 		{
-			if ( !msg || !msg.address )
+			if ( !location || !location.address )
 				return;
 				
-			this.setInputValue( msg.address );
-            this.toggle();
+			this.setInputValue( location.address );
+            this.search(location);
+            this.open();
 		}
 		
 	});

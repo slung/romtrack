@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 	<head>
 		<title>Tracks</title>
@@ -76,8 +76,10 @@
 								container: TRACKS.one("#list"),
 								renderContainer: TRACKS.one("#list #container"),
 								hideOnStates: [],
+                                noTracksMsg: "Din păcate nu am găsit trasee în jurul locației căutate :(",
 								templates: {
-                                    main: $j.trim( TRACKS.one("#list-tpl").innerHTML )
+                                    main: $j.trim( TRACKS.one("#list-tpl").innerHTML ),
+                                    empty: $j.trim( TRACKS.one("#empty-list-tpl").innerHTML )
 								}	
 							}),
                             /*
@@ -93,13 +95,17 @@
                                     main: $j.trim( TRACKS.one("#elevation-profile-tpl").innerHTML )
 								}	
 							})
-						]
+						],
+                        appReady: function () {
+                            TRACKS.dispatcher.onMessage("tracksInitiated", function () {
+                                //GeolocateUser
+                                TRACKS.DataManager.getInstance().geolocateUser();
+                            });
+                        }
 					});
 	
 					app.start();
-					
-					//GeolocateUser
-					TRACKS.DataManager.getInstance().geolocateUser();
+		
 				});
 				
 			})(jQuery.noConflict());
@@ -183,6 +189,13 @@
                     </div>
                 {{/tracks}}
             </div>
+		</script>
+        
+        <script id="empty-list-tpl" type="text/template">
+            <img id="list-toggle" src="assets/images/list.png" width="30px"/>
+            {{#message}}
+                <div id="message">{{message}}</div>
+            {{/message}}
 		</script>
 		
         <!-- Elevation profile template -->

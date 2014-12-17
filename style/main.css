@@ -120,6 +120,7 @@ body {
 
 .infoWindow #details #name {
     font-weight: bold;
+    font-style: normal;
 }
 
 .infoWindow #details a {
@@ -143,11 +144,11 @@ body {
 /* List */
 #list {
     position: absolute;
-    top: 250px;
+    top: 150px;
     left: -360px;
     
     width: 330px;
-    height: 500px;
+    height: 350px;
     
     background-color: #FFFFFF;
     padding: 15px;
@@ -159,6 +160,15 @@ body {
     -webkit-border-top-right-radius: 5px;
     -moz-border-radius-topright: 5px;
     border-top-right-radius: 5px;
+}
+
+#list #message {
+    font-size: 12px;
+    font-style: italic;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 50%;
+
 }
 
 #list #container {
@@ -185,7 +195,7 @@ body {
 
 #list #list-toggle {
     position: absolute;
-    top: 235px;
+    top: 160px;
     left: 360px;
     
     padding: 3px 3px 3px 7px;
