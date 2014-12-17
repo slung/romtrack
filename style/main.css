@@ -99,18 +99,36 @@ body {
 
 /* Tooltip */
 .infoWindow {
-    width: 200px;
-    text-align: center;
+    width: 230px;
 	background-color: #FFFFFF;
-	padding: 5px 15px;
+	padding: 10px 15px;
     
     border-radius: 5px 5px 5px 5px;
     -moz-border-radius: 5px 5px 5px 5px;
     -webkit-border-radius: 5px 5px 5px 5px;
 }
 
-.infoWindow #name {
+.infoWindow img {
+    margin-top: 4px;
+}
+
+.infoWindow #details {
+    margin-left: 15px;
+    width: 165px;
+    font-style: italic;
+}
+
+.infoWindow #details #name {
     font-weight: bold;
+}
+
+.infoWindow #details a {
+    color: #D95642;
+    text-decoration: none;
+}
+
+.infoWindow #details a:hover {
+    text-decoration: underline;
 }
 
 .tail {
@@ -157,6 +175,8 @@ body {
 
 #list #tracks {
     
+    height: 100%;
+    
     overflow-x: hidden;
     overflow-y: auto;
     
@@ -185,8 +205,8 @@ body {
 }
 
 #list .track {
-    padding: 20px 0 0 0;
-    opacity: 0.7;
+    padding: 15px 0 0 0;
+    opacity: 0.8;
 }
 
 #list .track:hover {
@@ -211,10 +231,21 @@ body {
 #list .track .info #track-parameters {
     font-size: 11px;
     font-style: italic;
+    
+    margin-top: 10px;
 }
 
-#list .track .info #track-parameters div{
-    margin-right: 10px;
+#list .track .info #track-parameters div {
+    margin: 0 0 3px 0;
+}
+
+#list .track .info #track-parameters a {
+    color: #D95642;
+    text-decoration: none;
+}
+
+#list .track .info #track-parameters a:hover {
+    text-decoration: underline;
 }
 
 #list .track .info #track-details {

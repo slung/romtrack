@@ -1,30 +1,58 @@
 [
     {
-        "id": "RO0001",
-        "name": "Siria - Cladova",
-        "url": "https://dl.dropboxusercontent.com/u/106013585/Amazing%20Romania/Tracks/Route_Siria_-_Cladova.gpx"
+        "name": "Cascadele Șipotului",
+        "url": "https://dl.dropboxusercontent.com/u/106013585/Amazing%20Romania/Tracks/cascadele-sipotului.gpx",
+        "article": "http://www.amazingromania.net/2014/09/cascadele-sipotului-minunatia_22.html",
+        "preview": "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Previews/cascadele-sipotului.jpg"
     }, {
-        "id": "RO0002",
-        "name": "Baile Herculane - Crucea Alba",
-        "url": "https://dl.dropboxusercontent.com/u/106013585/Amazing%20Romania/Tracks/Route_Herculane-_Crucea_Alba_-_Vf._Domogled.gpx"
-    },{
-        "id": "RO0003",
-        "name": "Cladova - Casoaia",
-        "url": "https://dl.dropboxusercontent.com/u/106013585/Amazing%20Romania/Tracks/Route_Cladova_-_Casoaia.gpx"
-    },{
-        "id": "RO0004",
-        "name": "Cheile Scorota - Piatra Iorgovanului",
-        "url": "https://dl.dropboxusercontent.com/u/106013585/Amazing%20Romania/Tracks/Route_Cheile_Scorota_-_Piatra_Iorgovanului.gpx"
+        "name": "Cetatea Poenari",
+        "url": "https://dl.dropboxusercontent.com/u/106013585/Amazing%20Romania/Tracks/cetatea-poenari.gpx",
+        "article": "http://www.amazingromania.net/2014/11/cetatea-poenari-cetatea-lui-vlad-tepes.html",
+        "preview": "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Previews/cetatea-poenari.jpg"
     }, {
-        "id": "RO0005",
-        "name": "Mehediniti: Crovul Mare",
-        "url": "https://dl.dropboxusercontent.com/u/106013585/Amazing%20Romania/Tracks/Route_Cernei-Mehedinti-_Crovul_Mare.gpx"
+        "name": "Cetatea Șiriei - Galșa",
+        "url": "https://dl.dropboxusercontent.com/u/106013585/Amazing%20Romania/Tracks/cetatea-siria-galsa.gpx",
+        "article": "http://www.amazingromania.net/2014/12/bike-tours-cetatea-siriei.html",
+        "preview": "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Previews/cetatea-siria.jpg"
     }, {
-        "id": "US0001",
-        "name": "Fells Loop",
-        "url": "https://dl.dropboxusercontent.com/u/106013585/Amazing%20Romania/Tracks/fells_loop.gpx"
+        "name": "Șiria - Cetatea Șiriei",
+        "url": "https://dl.dropboxusercontent.com/u/106013585/Amazing%20Romania/Tracks/siria-cetatea-siria.gpx",
+        "article": "http://www.amazingromania.net/2014/12/bike-tours-cetatea-siriei.html",
+        "preview": "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Previews/cetatea-siria.jpg"
     }, {
-        "name": "Borsa - Vf. Pietrosul Rodnei",
-        "url": "https://dl.dropboxusercontent.com/u/106013585/Amazing%20Romania/Tracks/Borsa_Lacul_Iezer_Vf_Pietrosul_Rodnei.gpx"
+        "name": "Cetatea Șoimoș",
+        "url": "https://dl.dropboxusercontent.com/u/106013585/Amazing%20Romania/Tracks/cetatea-soimos.gpx",
+        "article": "http://www.amazingromania.net/2014/12/cetatea-soimos-fereastra-spre-valea.html",
+        "preview": "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Previews/cetatea-soimos.jpg"
+    }, {
+        "name": "Cheile Băniței",
+        "url": "https://dl.dropboxusercontent.com/u/106013585/Amazing%20Romania/Tracks/cheile-banitei.gpx",
+        "article": "http://www.amazingromania.net/2014/10/cheile-banitei-apa-stanca-sculptura.html",
+        "preview": "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Previews/cheile-banitei.jpg"
+    }, {
+        "name": "Coborâre Casa Tradițională",
+        "url": "https://dl.dropboxusercontent.com/u/106013585/Amazing%20Romania/Tracks/coborare-casa-traditionala-bihor.gpx",
+        "article": "http://www.amazingromania.net/2014/10/rosia-de-bihor-sus-in-deal-e-o-casa.html",
+        "preview": "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Previews/rosia-de-bihor.jpg"
+    }, {
+        "name": "Transfăgărășanul Aradului",
+        "url": "https://dl.dropboxusercontent.com/u/106013585/Amazing%20Romania/Tracks/transfagarasanul-aradului.gpx",
+        "article": "http://www.amazingromania.net/2014/10/bike-tours-transfagarasanul-aradului.html",
+        "preview": "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Previews/transfagarasanul-aradului.jpg"
+    }, {
+        "name": "Cu bicicleta la Casa Tradițională",
+        "url": "https://dl.dropboxusercontent.com/u/106013585/Amazing%20Romania/Tracks/traseu-casa-traditionala-bihor.gpx",
+        "article": "http://www.amazingromania.net/2014/10/rosia-de-bihor-sus-in-deal-e-o-casa.html",
+        "preview": "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Previews/rosia-de-bihor.jpg"
+    }, {
+        "name": "Tunelul foto",
+        "url": "https://dl.dropboxusercontent.com/u/106013585/Amazing%20Romania/Tracks/tunelul-foto.gpx",
+        "article": "http://www.amazingromania.net/2014/11/tunelul-foto-tunelul-iubirii-si.html",
+        "preview": "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Previews/tunelul-foto.jpg"
+    }, {
+        "name": "Valea lui Stan",
+        "url": "https://dl.dropboxusercontent.com/u/106013585/Amazing%20Romania/Tracks/valea-lui-stan.gpx",
+        "article": "http://www.amazingromania.net/2014/10/valea-lui-stan-adrenalina-in-canion.html",
+        "preview": "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Previews/valea-lui-stan.jpg"
     }
 ]

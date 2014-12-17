@@ -25,13 +25,13 @@
 			this.ajax = TRACKS.AjaxManager.getInstance();
 		},
 		
-		geocode: function( address, multipleResults, options )
+		geocode: function( address, region, multipleResults, options )
 		{
 			var options = options || {};
 		    
 			var geocoder = new google.maps.Geocoder();
 		    
-		    geocoder.geocode({ address: address }, TRACKS.bind( function( results, status ) {
+		    geocoder.geocode({ address: address, region: region }, TRACKS.bind( function( results, status ) {
 		    	
 		    	if (status == google.maps.GeocoderStatus.OK) {
 		    		

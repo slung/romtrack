@@ -124,13 +124,13 @@
 			this.ajax = TRACKS.AjaxManager.getInstance();
 		},
 		
-		geocode: function( address, multipleResults, options )
+		geocode: function( address, region, multipleResults, options )
 		{
 			var options = options || {};
 		    
 			var geocoder = new google.maps.Geocoder();
 		    
-		    geocoder.geocode({ address: address }, TRACKS.bind( function( results, status ) {
+		    geocoder.geocode({ address: address, region: region }, TRACKS.bind( function( results, status ) {
 		    	
 		    	if (status == google.maps.GeocoderStatus.OK) {
 		    		
@@ -359,7 +359,7 @@
                 crossDomain: true,
                 success: TRACKS.bind(function(gpxData){
                     var trackData = this.trackPointsFromGPX(gpxData);
-                    this.saveTrack(parsedData.id, parsedData.name, trackData.trackPoints, trackData.elevationPoints, trackIndex);
+                    this.saveTrack(parsedData.name, parsedData.url, parsedData.article, parsedData.preview, trackData.trackPoints, trackData.elevationPoints, trackIndex);
                     this.trackCounter++;
 
                     if (this.trackCounter == this.expectedNbOfTracks) {
@@ -369,8 +369,8 @@
             });
         },
         
-        saveTrack: function(id, name, trackPoints, elevationPoints, trackIndex) {
-            var track = new TRACKS.Track(id, name, trackPoints, elevationPoints, trackIndex);
+        saveTrack: function(name, url, article, preview, trackPoints, elevationPoints, trackIndex) {
+            var track = new TRACKS.Track(name, url, article, preview,  trackPoints, elevationPoints, trackIndex);
             this.tracks.push(track);
             this.allTracks.push(track);
         },
@@ -420,14 +420,17 @@
 
 (function( TRACKS )
 {
-	var Track = function (id, name, points, elevationPoints, index, color, startMarkerUrl) {
-        this.id = id;
-        this.name = name
+    var Track = function (name, url, article, preview, points, elevationPoints, index, color, startMarkerUrl, endMarkerUrl) {
+        this.name = name;
+        this.url = url;
+        this.article = article;
+        this.preview = preview;
         this.points = points;
         this.elevationPoints = elevationPoints || [];
         this.index = index;
         this.color = color || "#D95642";
         this.startMarkerUrl = startMarkerUrl || "assets/images/marker.png";
+        this.endMarkerUrl = endMarkerUrl || "assets/images/end-marker.png";
         this.bounds = this.getBounds();
         this.mapTrack = this.getMapTrack();
         this.length = this.getLength();
@@ -435,7 +438,7 @@
         var ascentDescent = this.getTotalAscentDescent();
         this.ascent = ascentDescent.ascent;
         this.descent = ascentDescent.descent;
-    }
+    };
     
     Track.prototype = {
         hasElevationProfile: function () {
@@ -456,13 +459,32 @@
             return this.points[0];
         },
         
+        getEndTrackPoint: function () {
+            return this.points[this.points.length - 1];
+        },
+        
         getMapTrack: function () {
-            return new google.maps.Polyline({
-              path: this.points,
-              strokeColor: this.color,
-              strokeOpacity: .7,
-              strokeWeight: 4
+            var polyline = new google.maps.Polyline({
+                path: this.points,
+                strokeColor: this.color,
+                strokeOpacity: 0.7,
+                strokeWeight: 4
             });
+            
+            // Add polyline evnt listener
+            google.maps.event.addListener(polyline, 'mouseover', function () {
+                this.setOptions({
+                    strokeOpacity: 1
+                });
+            });
+            
+            google.maps.event.addListener(polyline, 'mouseout', function () {
+                this.setOptions({
+                    strokeOpacity: 0.7
+                });
+            });
+            
+            return polyline; 
         },
         
         getLength: function () {
@@ -766,7 +788,7 @@
                 this.centerMarker.setPosition(theCenter);
             } else {
                 this.centerMarker = this.createMarker({
-                    url: "assets/images/target-icon.png",
+                    icon: "assets/images/target-icon.png",
                     position: {
                         lat: center.lat,
                         lon: center.lon
@@ -779,28 +801,41 @@
 		
 		createMarker: function (markerInfo)
 		{
+            var map = markerInfo.hideMarker ? null : this.map,
+                position = (markerInfo.position && (!markerInfo.position.lat || !markerInfo.position.lon)) ? markerInfo.position : new google.maps.LatLng(markerInfo.position.lat, markerInfo.position.lon);
+            
 			return new google.maps.Marker({
-				map: this.map,
+                map: map,
 				//animation: google.maps.Animation.DROP,
-				icon: markerInfo.url,
-				position: new google.maps.LatLng( markerInfo.position.lat, markerInfo.position.lon )
+				icon: markerInfo.icon,
+                position: position
 			});
 		},
         
         addTracks: function (tracks) {
             for (var i = 0; i < tracks.length; i++) {
                 var track = tracks[i];
-                var marker = new google.maps.Marker({
-                    map: this.map,
-                    //animation: google.maps.Animation.DROP,
+                var startMarker =  this.createMarker({
                     icon: track.startMarkerUrl,
                     position: track.getStartTrackPoint()
                 });
+                
+                var endMarker =  this.createMarker({
+                    icon: track.endMarkerUrl,
+                    position: track.getEndTrackPoint(),
+                    hideMarker: true
+                });
 
-                marker.track = track;
-                track.marker = marker;
-                this.addStartTrackMarkerListeners(marker);
-                this.markers.push(marker);
+                // Set track markers
+                startMarker.track = track;
+                track.startMarker = startMarker;
+                
+                endMarker.track = track;
+                track.endMarker = endMarker;
+                
+                this.addStartTrackMarkerListeners(startMarker);
+                this.markers.push(startMarker);
+                this.markers.push(endMarker);
             }
             
             //this.enableClustering();
@@ -824,9 +859,9 @@
             }, this));
 
             google.maps.event.addListener(marker, 'mouseout', TRACKS.bind(function (evt) {
-                if (this.hoverTooltip) {
-                    this.hoverTooltip.close();
-                }
+//                if (this.hoverTooltip) {
+//                    this.hoverTooltip.close();
+//                }
             }, this));
         },
         
@@ -843,22 +878,32 @@
             this.deselectTrack(this.lastTrack);
             
             if (this.lastTrack && this.lastTrack.index == track.index) {
+                this.lastTrack = null;
                 return;
             }
             
             // show track, change state
             track.mapTrack.setMap(this.map);
             this.map.fitBounds(track.bounds);
+            
+            // Send mesages
             this.sendMessage("showElevationProfile", track);
-
-            this.lastTrack = track;
             this.sendMessage("changeState", {state: TRACKS.App.States.TRACK_INFO});
+            
+            // Save track
+            this.lastTrack = track;
+            
+            // Show track end marker
+            this.lastTrack.endMarker.setMap(this.map);
         },
         
         deselectTrack: function (track) {
             if (!track) {
                 return;
             }
+            
+            // Remove end track marker
+            this.lastTrack.endMarker.setMap(null);
             
             track.mapTrack.setMap(null);
             this.sendMessage("reverseState");
@@ -996,16 +1041,13 @@
             }
             
             var content = this.mustache(this.templates.tooltipTemplate, {
-                track: {
-                    name: marker.track.name,
-                    length: marker.track.length
-                }
+                track: marker.track
             });
 
             this.hoverTooltip = new InfoBox({
                 content: content, 
                 closeBoxURL: "",
-                pixelOffset: new google.maps.Size(-115, -80)
+                pixelOffset: new google.maps.Size(-130, -155)
             });
             
             this.hoverTooltip.open(this.map, marker);
@@ -1044,6 +1086,7 @@
 			this._parent(cfg);
 			
             this.searchRadius = cfg.searchRadius || 100;
+            this.countryCode = cfg.countryCode;
             
 			this.dataManager.on('userGeocoded', TRACKS.bind( this.onUserGeocoded, this));
 		},
@@ -1073,7 +1116,7 @@
                 return;
             }
 			
-			this.dataManager.geocode( this.searchInputText, true, {
+            this.dataManager.geocode( this.searchInputText, this.countryCode, true, {
 				success: TRACKS.bind( function( addresses ) {
 					
 					if ( addresses.length == 0 )
@@ -1245,14 +1288,24 @@
 {
 	var ListView = TRACKS.View.extend({
 		
+        selectedTrackIndex: -1,
+        
 		events: {
 			"#list #list-toggle": {
 				click: "onListToggleClick"
 			},
             
+            "#list #article": {
+                click: "onLinksClick"
+            },
+            
+            "#list #download": {
+                click: "onLinksClick"
+            },
+            
             "#list .track": {
                 click: "onTrackClick",
-				hover: "onTrackHover"
+				//hover: "onTrackHover"
 			}
 		},
 		
@@ -1296,6 +1349,23 @@
             }
         },
         
+        toggleTrackDetails: function (index) {
+            if (index === -1) {
+                return;
+            }
+            
+            // Expand/contract preview image
+            if (jQuery("#list #trackitem-" + index + " #track-parameters").css("display") === "none") {
+                jQuery("#list #trackitem-" + index + " #preview").css("width", "90px");
+                jQuery("#list #trackitem-" + index + " #preview").css("height", "auto");
+            } else {
+                jQuery("#list #trackitem-" + index + " #preview").css("width", "60px");
+                jQuery("#list #trackitem-" + index + " #preview").css("height", "30px");
+            }
+            
+            jQuery("#list #trackitem-" + index + " #track-parameters").toggle("fast");
+        },
+        
         open: function () {
             var isOpen = jQuery("#list").css("left") == "0px" ? true : false;
             
@@ -1313,23 +1383,23 @@
         },
         
         selectTrack: function (index) {
-            this.deselectTracks();
+            if (index !== this.selectedTrackIndex) {
             
-             //Select track on map
-            var track = this.tracksManager.getTrackByIndex(index);
-            
-            if (this.lastIndex == index) {
-                return;
-            }
+                // Deselect previous track first
+                this.toggleTrackDetails(this.selectedTrackIndex);
+
+                // Show track details
+                this.toggleTrackDetails(index);
+
+                // Save track index
+                this.selectedTrackIndex = index;
+            } else {
+                // Deselect track
+                this.toggleTrackDetails(index);
                 
-            this.lastIndex = index;
-            
-            //Select track in list
-            jQuery("#trackitem-" + index).addClass("selected");
-        },
-        
-        deselectTracks: function () {
-            jQuery(".track").removeClass("selected");
+                // Reset selected track index
+                this.selectedTrackIndex = -1;
+            }
         },
 		
 		/*
@@ -1359,7 +1429,7 @@
 		 * Messages
 		 */
 		onTracksLoaded: function (tracks) {
-            if (!tracks || tracks.length == 0) {
+            if (!tracks || tracks.length === 0) {
                 return;
             }
             
@@ -1376,6 +1446,10 @@
             }
             
             this.selectTrack(track.index);
+        },
+        
+        onLinksClick: function (evt) {
+            evt.stopPropagation();
         }
 		
 	});
@@ -1399,6 +1473,9 @@
 			
 			// Call super
 			this._parent( cfg );
+            
+            this.xAxisName = cfg.xAxisName ? cfg.xAxisName : 'Distance (km)';
+            this.yAxisName = cfg.yAxisName ? cfg.yAxisName : 'Altitude (m)';
 		},
 		
 		register: function()
@@ -1417,8 +1494,8 @@
             var options = {
                 width: 700,
                 height: 170,
-                hAxis: {title: 'Distance (km)',  titleTextStyle: {color: '#333'}},
-                vAxis: {title: 'Altitude (m)', minValue: 0, titleTextStyle: {color: '#333'}},
+                hAxis: {title: this.xAxisName,  titleTextStyle: {color: '#333'}},
+                vAxis: {title: this.yAxisName, minValue: 0, titleTextStyle: {color: '#333'}},
                 legend: 'none'
             };
 
@@ -1435,8 +1512,8 @@
             var elevationProfileData = new google.visualization.DataTable();
             
             //Push header
-            elevationProfileData.addColumn('number', 'Distance');
-            elevationProfileData.addColumn('number', 'Altitude (m)');
+            elevationProfileData.addColumn('number', this.xAxisName);
+            elevationProfileData.addColumn('number', this.yAxisName);
             
             for (var i = 0; i < track.elevationPoints.length; i++) {
                 elevationProfileData.addRow([track.getDistanceFromStart(i), parseInt(track.elevationPoints[i])]);
@@ -1488,7 +1565,7 @@
         
         onElevationProfileOver: function (data) {
             this.sendMessage("showElevationMarker", {
-                url: "assets/images/marker-small.png",
+                icon: "assets/images/marker-small.png",
                 position: {
                     lat: this.track.points[data.row].lat(),
                     lon: this.track.points[data.row].lng()

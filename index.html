@@ -49,6 +49,7 @@
 							 */
 							new TRACKS.SearchView({
                                 searchRadius: 40,
+                                countryCode: "ro",
 								container: TRACKS.one("#search"),
 								hideOnStates: [],
 								templates: {
@@ -86,6 +87,8 @@
 								container: TRACKS.one("#elevation-profile"),
 								renderContainer: TRACKS.one("#elevation-profile #container"),
 								hideOnStates: [TRACKS.App.States.DEFAULT, TRACKS.App.States.SEARCH],
+                                xAxisName: "Distanță (km)",
+                                yAxisName: "Altitudine (m)",
 								templates: {
                                     main: $j.trim( TRACKS.one("#elevation-profile-tpl").innerHTML )
 								}	
@@ -123,7 +126,7 @@
 		<!-- Search View template -->
 		<script id="search-tpl" type="text/template">
             <img src="assets/images/red-search-icon.png" />
-			<input id="search-input" class="yui3-u" type="text" placeholder="Find tracks..."/>
+			<input id="search-input" class="yui3-u" type="text" placeholder="Caută trasee în jurul unei locații..."/>
             <div id="suggestions"></div>
 		</script>
         
@@ -139,10 +142,17 @@
         
         <!-- Tooltip template -->
         <script id="tooltip-tpl" type="text/template">
-            <div class="infoWindow">
+            <div class="infoWindow yui3-g">
                 {{#track}}
-                    <div id="name">{{name}}</div>
-                    <div id="length">Distance: {{length}} km</div>
+                    <img class="yui3-u" src={{preview}} width="50px" height="50px"/>
+                    <div id="details" class="yui3-u">
+                        <div id="name">{{name}}</div>
+                        <div id="length"><b>Lungime:</b> {{length}} km</div>
+                        <div id="ascent"><b>Urcare:</b> {{ascent}} m</div>
+                        <div id="descent"><b>Coborâre:</b> {{descent}} m</div>
+                        <div id="article"><a href={{article}} target="_blank">Citește articolul</a></div>
+                        <div id="download"><a href={{url}} target="_blank">Descarcă traseul (GPX)</a></div>
+                    </div>
                 {{/track}}
             </div>
             <div class="tail"></div>
@@ -158,16 +168,17 @@
                 {{#tracks}}
                     <div id="trackitem-{{index}}" class="yui3-g track">
                         <div class="yui3-u">
-                            <img src="assets/images/marker.png" />    
+                            <img id="preview" src={{preview}} width="60px" height="30px"/>    
                         </div>
                         <div class="yui3-u info">
                             <div id="name">{{name}}</div>
-                            <div id="track-parameters" class="yui3-g">
-                                <div id="length" class="yui3-u">Distance: {{length}} km</div>
-                                <div id="ascent" class="yui3-u">Ascent: {{ascent}} m</div>
-                                <div id="descent" class="yui3-u">Descent: {{descent}} m</div>
+                            <div id="track-parameters" style="display: none">
+                                <div id="length"><b>Lungime:</b> {{length}} km</div>
+                                <div id="ascent"><b>Urcare:</b> {{ascent}} m</div>
+                                <div id="descent"><b>Coborâre:</b> {{descent}} m</div>
+                                <div id="article"><a href={{article}} target="_blank">Citește articolul</a></div>
+                                <div id="download"><a href={{url}} target="_blank">Descarcă traseu (GPX)</a></div>
                             </div>
-                            <div id="track-details">See track details</div>
                         </div>
                     </div>
                 {{/tracks}}

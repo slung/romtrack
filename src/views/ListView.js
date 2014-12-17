@@ -2,14 +2,24 @@
 {
 	var ListView = TRACKS.View.extend({
 		
+        selectedTrackIndex: -1,
+        
 		events: {
 			"#list #list-toggle": {
 				click: "onListToggleClick"
 			},
             
+            "#list #article": {
+                click: "onLinksClick"
+            },
+            
+            "#list #download": {
+                click: "onLinksClick"
+            },
+            
             "#list .track": {
                 click: "onTrackClick",
-				hover: "onTrackHover"
+				//hover: "onTrackHover"
 			}
 		},
 		
@@ -53,6 +63,23 @@
             }
         },
         
+        toggleTrackDetails: function (index) {
+            if (index === -1) {
+                return;
+            }
+            
+            // Expand/contract preview image
+            if (jQuery("#list #trackitem-" + index + " #track-parameters").css("display") === "none") {
+                jQuery("#list #trackitem-" + index + " #preview").css("width", "90px");
+                jQuery("#list #trackitem-" + index + " #preview").css("height", "auto");
+            } else {
+                jQuery("#list #trackitem-" + index + " #preview").css("width", "60px");
+                jQuery("#list #trackitem-" + index + " #preview").css("height", "30px");
+            }
+            
+            jQuery("#list #trackitem-" + index + " #track-parameters").toggle("fast");
+        },
+        
         open: function () {
             var isOpen = jQuery("#list").css("left") == "0px" ? true : false;
             
@@ -70,23 +97,23 @@
         },
         
         selectTrack: function (index) {
-            this.deselectTracks();
+            if (index !== this.selectedTrackIndex) {
             
-             //Select track on map
-            var track = this.tracksManager.getTrackByIndex(index);
-            
-            if (this.lastIndex == index) {
-                return;
-            }
+                // Deselect previous track first
+                this.toggleTrackDetails(this.selectedTrackIndex);
+
+                // Show track details
+                this.toggleTrackDetails(index);
+
+                // Save track index
+                this.selectedTrackIndex = index;
+            } else {
+                // Deselect track
+                this.toggleTrackDetails(index);
                 
-            this.lastIndex = index;
-            
-            //Select track in list
-            jQuery("#trackitem-" + index).addClass("selected");
-        },
-        
-        deselectTracks: function () {
-            jQuery(".track").removeClass("selected");
+                // Reset selected track index
+                this.selectedTrackIndex = -1;
+            }
         },
 		
 		/*
@@ -116,7 +143,7 @@
 		 * Messages
 		 */
 		onTracksLoaded: function (tracks) {
-            if (!tracks || tracks.length == 0) {
+            if (!tracks || tracks.length === 0) {
                 return;
             }
             
@@ -133,6 +160,10 @@
             }
             
             this.selectTrack(track.index);
+        },
+        
+        onLinksClick: function (evt) {
+            evt.stopPropagation();
         }
 		
 	});

@@ -49,7 +49,7 @@
                 crossDomain: true,
                 success: TRACKS.bind(function(gpxData){
                     var trackData = this.trackPointsFromGPX(gpxData);
-                    this.saveTrack(parsedData.id, parsedData.name, trackData.trackPoints, trackData.elevationPoints, trackIndex);
+                    this.saveTrack(parsedData.name, parsedData.url, parsedData.article, parsedData.preview, trackData.trackPoints, trackData.elevationPoints, trackIndex);
                     this.trackCounter++;
 
                     if (this.trackCounter == this.expectedNbOfTracks) {
@@ -59,8 +59,8 @@
             });
         },
         
-        saveTrack: function(id, name, trackPoints, elevationPoints, trackIndex) {
-            var track = new TRACKS.Track(id, name, trackPoints, elevationPoints, trackIndex);
+        saveTrack: function(name, url, article, preview, trackPoints, elevationPoints, trackIndex) {
+            var track = new TRACKS.Track(name, url, article, preview,  trackPoints, elevationPoints, trackIndex);
             this.tracks.push(track);
             this.allTracks.push(track);
         },

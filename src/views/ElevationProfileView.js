@@ -12,6 +12,9 @@
 			
 			// Call super
 			this._parent( cfg );
+            
+            this.xAxisName = cfg.xAxisName ? cfg.xAxisName : 'Distance (km)';
+            this.yAxisName = cfg.yAxisName ? cfg.yAxisName : 'Altitude (m)';
 		},
 		
 		register: function()
@@ -30,8 +33,8 @@
             var options = {
                 width: 700,
                 height: 170,
-                hAxis: {title: 'Distance (km)',  titleTextStyle: {color: '#333'}},
-                vAxis: {title: 'Altitude (m)', minValue: 0, titleTextStyle: {color: '#333'}},
+                hAxis: {title: this.xAxisName,  titleTextStyle: {color: '#333'}},
+                vAxis: {title: this.yAxisName, minValue: 0, titleTextStyle: {color: '#333'}},
                 legend: 'none'
             };
 
@@ -48,8 +51,8 @@
             var elevationProfileData = new google.visualization.DataTable();
             
             //Push header
-            elevationProfileData.addColumn('number', 'Distance');
-            elevationProfileData.addColumn('number', 'Altitude (m)');
+            elevationProfileData.addColumn('number', this.xAxisName);
+            elevationProfileData.addColumn('number', this.yAxisName);
             
             for (var i = 0; i < track.elevationPoints.length; i++) {
                 elevationProfileData.addRow([track.getDistanceFromStart(i), parseInt(track.elevationPoints[i])]);
@@ -101,7 +104,7 @@
         
         onElevationProfileOver: function (data) {
             this.sendMessage("showElevationMarker", {
-                url: "assets/images/marker-small.png",
+                icon: "assets/images/marker-small.png",
                 position: {
                     lat: this.track.points[data.row].lat(),
                     lon: this.track.points[data.row].lng()

@@ -25,7 +25,7 @@
 		
 		render: function()
 		{
-            if (!this.tracks || this.tracks.length == 0) {
+            if (!this.tracks || this.tracks.length === 0) {
                 return;
             }
             

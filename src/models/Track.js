@@ -1,13 +1,16 @@
 (function( TRACKS )
 {
-	var Track = function (id, name, points, elevationPoints, index, color, startMarkerUrl) {
-        this.id = id;
-        this.name = name
+    var Track = function (name, url, article, preview, points, elevationPoints, index, color, startMarkerUrl, endMarkerUrl) {
+        this.name = name;
+        this.url = url;
+        this.article = article;
+        this.preview = preview;
         this.points = points;
         this.elevationPoints = elevationPoints || [];
         this.index = index;
         this.color = color || "#D95642";
         this.startMarkerUrl = startMarkerUrl || "assets/images/marker.png";
+        this.endMarkerUrl = endMarkerUrl || "assets/images/end-marker.png";
         this.bounds = this.getBounds();
         this.mapTrack = this.getMapTrack();
         this.length = this.getLength();
@@ -15,7 +18,7 @@
         var ascentDescent = this.getTotalAscentDescent();
         this.ascent = ascentDescent.ascent;
         this.descent = ascentDescent.descent;
-    }
+    };
     
     Track.prototype = {
         hasElevationProfile: function () {
@@ -36,13 +39,32 @@
             return this.points[0];
         },
         
+        getEndTrackPoint: function () {
+            return this.points[this.points.length - 1];
+        },
+        
         getMapTrack: function () {
-            return new google.maps.Polyline({
-              path: this.points,
-              strokeColor: this.color,
-              strokeOpacity: .7,
-              strokeWeight: 4
+            var polyline = new google.maps.Polyline({
+                path: this.points,
+                strokeColor: this.color,
+                strokeOpacity: 0.7,
+                strokeWeight: 4
             });
+            
+            // Add polyline evnt listener
+            google.maps.event.addListener(polyline, 'mouseover', function () {
+                this.setOptions({
+                    strokeOpacity: 1
+                });
+            });
+            
+            google.maps.event.addListener(polyline, 'mouseout', function () {
+                this.setOptions({
+                    strokeOpacity: 0.7
+                });
+            });
+            
+            return polyline; 
         },
         
         getLength: function () {

@@ -116,7 +116,7 @@
                 this.centerMarker.setPosition(theCenter);
             } else {
                 this.centerMarker = this.createMarker({
-                    url: "assets/images/target-icon.png",
+                    icon: "assets/images/target-icon.png",
                     position: {
                         lat: center.lat,
                         lon: center.lon
@@ -129,28 +129,41 @@
 		
 		createMarker: function (markerInfo)
 		{
+            var map = markerInfo.hideMarker ? null : this.map,
+                position = (markerInfo.position && (!markerInfo.position.lat || !markerInfo.position.lon)) ? markerInfo.position : new google.maps.LatLng(markerInfo.position.lat, markerInfo.position.lon);
+            
 			return new google.maps.Marker({
-				map: this.map,
+                map: map,
 				//animation: google.maps.Animation.DROP,
-				icon: markerInfo.url,
-				position: new google.maps.LatLng( markerInfo.position.lat, markerInfo.position.lon )
+				icon: markerInfo.icon,
+                position: position
 			});
 		},
         
         addTracks: function (tracks) {
             for (var i = 0; i < tracks.length; i++) {
                 var track = tracks[i];
-                var marker = new google.maps.Marker({
-                    map: this.map,
-                    //animation: google.maps.Animation.DROP,
+                var startMarker =  this.createMarker({
                     icon: track.startMarkerUrl,
                     position: track.getStartTrackPoint()
                 });
+                
+                var endMarker =  this.createMarker({
+                    icon: track.endMarkerUrl,
+                    position: track.getEndTrackPoint(),
+                    hideMarker: true
+                });
 
-                marker.track = track;
-                track.marker = marker;
-                this.addStartTrackMarkerListeners(marker);
-                this.markers.push(marker);
+                // Set track markers
+                startMarker.track = track;
+                track.startMarker = startMarker;
+                
+                endMarker.track = track;
+                track.endMarker = endMarker;
+                
+                this.addStartTrackMarkerListeners(startMarker);
+                this.markers.push(startMarker);
+                this.markers.push(endMarker);
             }
             
             //this.enableClustering();
@@ -174,9 +187,9 @@
             }, this));
 
             google.maps.event.addListener(marker, 'mouseout', TRACKS.bind(function (evt) {
-                if (this.hoverTooltip) {
-                    this.hoverTooltip.close();
-                }
+//                if (this.hoverTooltip) {
+//                    this.hoverTooltip.close();
+//                }
             }, this));
         },
         
@@ -193,22 +206,32 @@
             this.deselectTrack(this.lastTrack);
             
             if (this.lastTrack && this.lastTrack.index == track.index) {
+                this.lastTrack = null;
                 return;
             }
             
             // show track, change state
             track.mapTrack.setMap(this.map);
             this.map.fitBounds(track.bounds);
+            
+            // Send mesages
             this.sendMessage("showElevationProfile", track);
-
-            this.lastTrack = track;
             this.sendMessage("changeState", {state: TRACKS.App.States.TRACK_INFO});
+            
+            // Save track
+            this.lastTrack = track;
+            
+            // Show track end marker
+            this.lastTrack.endMarker.setMap(this.map);
         },
         
         deselectTrack: function (track) {
             if (!track) {
                 return;
             }
+            
+            // Remove end track marker
+            this.lastTrack.endMarker.setMap(null);
             
             track.mapTrack.setMap(null);
             this.sendMessage("reverseState");
@@ -346,16 +369,13 @@
             }
             
             var content = this.mustache(this.templates.tooltipTemplate, {
-                track: {
-                    name: marker.track.name,
-                    length: marker.track.length
-                }
+                track: marker.track
             });
 
             this.hoverTooltip = new InfoBox({
                 content: content, 
                 closeBoxURL: "",
-                pixelOffset: new google.maps.Size(-115, -80)
+                pixelOffset: new google.maps.Size(-130, -155)
             });
             
             this.hoverTooltip.open(this.map, marker);

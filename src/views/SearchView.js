@@ -24,6 +24,7 @@
 			this._parent(cfg);
 			
             this.searchRadius = cfg.searchRadius || 100;
+            this.countryCode = cfg.countryCode;
             
 			this.dataManager.on('userGeocoded', TRACKS.bind( this.onUserGeocoded, this));
 		},
@@ -53,7 +54,7 @@
                 return;
             }
 			
-			this.dataManager.geocode( this.searchInputText, true, {
+            this.dataManager.geocode( this.searchInputText, this.countryCode, true, {
 				success: TRACKS.bind( function( addresses ) {
 					
 					if ( addresses.length == 0 )
