@@ -27,11 +27,14 @@
             this.countryCode = cfg.countryCode;
             
 			this.dataManager.on('userGeocoded', TRACKS.bind( this.onUserGeocoded, this));
+            this.dataManager.on('userNotGeocoded', TRACKS.bind( this.onUserNotGeocoded, this));
 		},
 		
 		register: function()
 		{
-			//this.onMessage("stateChanged", this.onStateChanged);
+            this.onMessage("openSearch", this.onOpenSearch);
+            this.onMessage("closeSearch", this.onCloseSearch);
+            this.onMessage("stateChanged", this.onStateChanged);
 		},
 		
 		render: function()
@@ -93,9 +96,9 @@
             
             if (tracksInBounds && tracksInBounds.length > 0) {
                 this.tracksManager.tracks = tracksInBounds;
-                this.sendMessage("tracksLoaded", tracksInBounds);
+                this.sendMessage("showTracks", tracksInBounds);
             } else {
-                this.sendMessage("noTracksLoaded");
+                this.sendMessage("noTracksToShow");
                 this.sendMessage("fitMapToBounds", centerBounds);
             }
         },
@@ -130,7 +133,7 @@
             this.suggestions = [];
         },
 		
-		setInputValue: function(value)
+		setInputValue: function (value)
 		{
 			TRACKS.one( INPUT_SELECTOR, this.container ).value = value;
 		},
@@ -146,8 +149,6 @@
         
         toggle: function () {
             if (this.isOpen()) {
-                this.removeSuggestions();
-                
                 // close
                 this.close();
             } else {
@@ -163,7 +164,7 @@
             }
             
             jQuery("#search input").animate({left: 0}, 200, null);
-            jQuery("#search img").animate({left: "310px"}, 200, null);
+            jQuery("#search img").animate({left: "290px"}, 200, null);
         },
         
         close: function () {
@@ -171,7 +172,9 @@
                 return;
             }
             
-            jQuery("#search input").animate({left: "-=310px"}, 200, null);
+            this.removeSuggestions();
+            
+            jQuery("#search input").animate({left: "-=290px"}, 200, null);
             jQuery("#search img").animate({left: 0}, 200, null);
         },
 		
@@ -189,10 +192,6 @@
             
             if (searchText.length > 2) {
                 this.searchLocationData();
-            } else if (searchText.length == 0) {
-                this.removeSuggestions();
-                this.sendMessage("tracksLoaded", this.tracksManager.allTracks);
-                this.sendMessage("changeState", {state: TRACKS.App.States.DEFAULT});
             }
 		},
         
@@ -218,8 +217,30 @@
 			this.setInputValue( location.address );
             this.search(location);
             this.open();
-		}
-		
+		},
+        
+        onUserNotGeocoded: function()
+        {
+            this.removeSuggestions();
+            this.sendMessage("showTracks", this.tracksManager.allTracks);
+            this.sendMessage("changeState", {state: TRACKS.App.States.DEFAULT});
+        },
+        
+        onOpenSearch: function () {
+            this.open();
+            this.focus();
+            this.setInputValue("");
+        },
+        
+        onCloseSearch: function () {
+            this.close();
+        },
+        
+        onStateChanged: function (msg) {
+            if (msg.currentState === TRACKS.App.States.TRACK_INFO) {
+                this.close();
+            }
+        }
 	});
 	
 	// Publish

@@ -45,7 +45,11 @@
 			this.dataManager.on('userGeocoded', TRACKS.bind( this.onUserGeocoded, this));
 			this.dataManager.on('userNotGeocoded', TRACKS.bind( this.onUserNotGeocoded, this));
 			
-			this.startZoom = cfg.startZoom || 3;
+			this.startZoom = cfg.startZoom || 7;
+            this.startLocation = cfg.startLocation || {
+                lat: 46.08371401022221,
+                lon: 23.73289867187499
+            };
 		},
 		
 		register: function()
@@ -53,10 +57,10 @@
             this.onMessage("setCenter", this.onSetCenter);
 			this.onMessage("setZoom", this.onSetZoom);
             this.onMessage("fitMapToBounds", this.onFitMapToBounds);
-            this.onMessage("tracksLoaded", this.onTracksLoaded);
+            this.onMessage("showTracks", this.onShowTracks);
             this.onMessage("searchTracksNearLocation", this.onSearchTracksNearLocation);
             this.onMessage("stateChanged", this.onStateChanged);
-            this.onMessage("showTrackHoverTooltip", this.onShowTrackHoverTooltip);
+            this.onMessage("showTrackTooltip", this.onShowTrackTooltip);
             this.onMessage("selectTrackOnMap", this.onSelectTrack);
             this.onMessage("showElevationMarker", this.onShowElevationMarker);
             this.onMessage("hideElevationMarker", this.onHideElevationMarker);
@@ -67,7 +71,7 @@
 		{
 			var mapOptions = {
 				zoom: this.startZoom,
-                center: new google.maps.LatLng(40.0000, -98.0000),
+                center: new google.maps.LatLng(this.startLocation.lat, this.startLocation.lon),
 				mapTypeId: google.maps.MapTypeId.HYBRID,
 				mapTypeControl: true,
 			    mapTypeControlOptions: {
@@ -174,6 +178,8 @@
                 this.markers[i].track.mapTrack.setMap(null);
                 this.markers[i].setMap(null);
             }
+            
+            this.removeTooltip();
         },
         
         addStartTrackMarkerListeners: function (marker) {
@@ -183,13 +189,19 @@
              }, this));
 
             google.maps.event.addListener(marker, 'mouseover', TRACKS.bind(function (evt) {
+                if (this.app.state == TRACKS.App.States.TRACK_INFO) {
+                    return;
+                }
+                
                 this.onTrackMarkerOver(marker);
             }, this));
 
             google.maps.event.addListener(marker, 'mouseout', TRACKS.bind(function (evt) {
-//                if (this.hoverTooltip) {
-//                    this.hoverTooltip.close();
-//                }
+                if (this.app.state == TRACKS.App.States.TRACK_INFO) {
+                    return;
+                }
+                
+                this.removeTooltip();
             }, this));
         },
         
@@ -197,18 +209,17 @@
             if (!track) {
                 return;
             }
-            
-            //Close hover tooltip if open
-            if (this.hoverTooltip) {
-                this.hoverTooltip.close();
-            }
-            
+
+            this.removeTooltip();
             this.deselectTrack(this.lastTrack);
             
             if (this.lastTrack && this.lastTrack.index == track.index) {
                 this.lastTrack = null;
                 return;
             }
+            
+            // Show tooltip
+            this.showTooltip(track.startMarker, true);
             
             // show track, change state
             track.mapTrack.setMap(this.map);
@@ -235,6 +246,33 @@
             
             track.mapTrack.setMap(null);
             this.sendMessage("reverseState");
+        },
+        
+        showTooltip: function (marker, fullDetails) {
+            this.removeTooltip();
+
+            var content = this.mustache(this.templates.tooltipTemplate, {
+                track: marker.track,
+                fullDetails: fullDetails
+            });
+
+            var closeBoxURL = fullDetails ? "../../assets/images/close.png" : "";
+            var offset = fullDetails ? new google.maps.Size(-136, -155) : new google.maps.Size(-136, -125)
+            
+            this.tooltip = new InfoBox({
+                content: content, 
+                closeBoxURL: closeBoxURL,
+                closeBoxMargin: "5px 5px 0px 0px",
+                pixelOffset: offset
+            });
+
+            this.tooltip.open(this.map, marker);
+        },
+        
+        removeTooltip: function () {
+            if (this.tooltip) {
+                this.tooltip.close();
+            }
         },
         
 //        enableClustering: function()
@@ -274,7 +312,7 @@
 			//this.zoom = 3;
 		},
         
-        onTracksLoaded: function (msg) {
+        onShowTracks: function (msg) {
             this.removeTracks();
             this.addTracks(msg);
             
@@ -316,8 +354,8 @@
             }
         },
         
-        onShowTrackHoverTooltip: function (track) {
-            this.onTrackMarkerOver(track.marker);
+        onShowTrackTooltip: function (track) {
+            this.onTrackMarkerOver(track.startMarker);
         },
         
         onSelectTrack: function (track) {
@@ -360,25 +398,11 @@
          },
         
         onTrackMarkerOver: function (marker) {
-            if (this.app.state == TRACKS.App.States.TRACK_INFO) {
+            if (this.app.state == TRACKS.App.States.TRACK_INFO || this.map.getZoom() > 8) {
                 return;
             }
             
-            if (this.hoverTooltip) {
-                this.hoverTooltip.close();
-            }
-            
-            var content = this.mustache(this.templates.tooltipTemplate, {
-                track: marker.track
-            });
-
-            this.hoverTooltip = new InfoBox({
-                content: content, 
-                closeBoxURL: "",
-                pixelOffset: new google.maps.Size(-130, -155)
-            });
-            
-            this.hoverTooltip.open(this.map, marker);
+            this.showTooltip(marker, false);
         }
 
 	});

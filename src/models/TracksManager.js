@@ -53,7 +53,7 @@
                     this.trackCounter++;
 
                     if (this.trackCounter == this.expectedNbOfTracks) {
-                        TRACKS.dispatcher.fire("tracksLoaded", this.tracks);
+                        TRACKS.dispatcher.fire("tracksInitiated", this.tracks);
                     }
                 }, this)
             });

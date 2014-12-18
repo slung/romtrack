@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 	<head>
 		<title>Tracks</title>
@@ -10,6 +10,7 @@
 		<link rel="stylesheet" type="text/css" href="style/main.css">
 	    <link rel="stylesheet" type="text/css" href="style/grids-min.css">
 	    <link rel="stylesheet" type="text/css" href="style/cssreset-min.css">
+        <link rel="stylesheet" href="style/jquery.mCustomScrollbar.min.css" />
 	    
 	    <!-- Google Maps -->
 <!--    	<script type="text/javascript" src="http://maps.google.com/maps/api/js?v=3.3&sensor=false&language=en"></script>-->
@@ -27,6 +28,7 @@
         <script type="text/javascript" src="libs/infobox.js"></script>
         <script type="text/javascript" src="libs/markerclusterer.js"></script>
         <script type="text/javascript" src="libs/d3.js"></script>
+        <script type="text/javascript" src="libs/jquery.mCustomScrollbar.concat.min.js"></script>
 	    
 		<!-- Font -->
 	    <link href='http://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
@@ -80,7 +82,12 @@
 								templates: {
                                     main: $j.trim( TRACKS.one("#list-tpl").innerHTML ),
                                     empty: $j.trim( TRACKS.one("#empty-list-tpl").innerHTML )
-								}	
+								},
+                                onReady: function () {
+                                    $j("#list #tracks").mCustomScrollbar({
+                                        theme: "minimal-dark"
+                                    });
+                                }
 							}),
                             /*
 							 * Elevation Profile view
@@ -149,17 +156,17 @@
         <!-- Tooltip template -->
         <script id="tooltip-tpl" type="text/template">
             <div class="infoWindow yui3-g">
-                {{#track}}
-                    <img class="yui3-u" src={{preview}} width="50px" height="50px"/>
-                    <div id="details" class="yui3-u">
-                        <div id="name">{{name}}</div>
-                        <div id="length"><b>Lungime:</b> {{length}} km</div>
-                        <div id="ascent"><b>Urcare:</b> {{ascent}} m</div>
-                        <div id="descent"><b>Coborâre:</b> {{descent}} m</div>
-                        <div id="article"><a href={{article}} target="_blank">Citește articolul</a></div>
-                        <div id="download"><a href={{url}} target="_blank">Descarcă traseul (GPX)</a></div>
-                    </div>
-                {{/track}}
+                <img class="yui3-u" src={{track.preview}} width="50px" height="50px"/>
+                <div id="details" class="yui3-u">
+                    <div id="name">{{track.name}}</div>
+                    <div id="length"><b>Lungime:</b> {{track.length}} km</div>
+                    <div id="ascent"><b>Urcare:</b> {{track.ascent}} m</div>
+                    <div id="descent"><b>Coborâre:</b> {{track.descent}} m</div>
+                    {{#fullDetails}}
+                        <div id="article"><a href={{track.article}} target="_blank">Citește articolul</a></div>
+                        <div id="download"><a href={{track.url}} target="_blank">Descarcă traseul (GPX)</a></div>
+                    {{/fullDetails}}
+                </div>
             </div>
             <div class="tail"></div>
 		</script>
@@ -167,7 +174,8 @@
         <!-- List template -->
         <script id="list-tpl" type="text/template">
             <div id="header" class="yui3-g">
-                <div id="track-count" class="yui3-u">We found <span id="track-count-number">{{nbTracks}}</span> tracks for you:</div>
+                <img id="all-tracks" width="16px" title="Vedeți toate traseele" src="assets/images/refresh.png" />
+                <div id="track-count" class="yui3-u">Am găsit <span id="track-count-number">{{nbTracks}}</span> trasee:</div>
             </div>
             <img id="list-toggle" src="assets/images/list.png" width="30px"/>
             <div id="tracks">
@@ -183,7 +191,7 @@
                                 <div id="ascent"><b>Urcare:</b> {{ascent}} m</div>
                                 <div id="descent"><b>Coborâre:</b> {{descent}} m</div>
                                 <div id="article"><a href={{article}} target="_blank">Citește articolul</a></div>
-                                <div id="download"><a href={{url}} target="_blank">Descarcă traseu (GPX)</a></div>
+                                <div id="download"><a href={{url}} target="_blank">Descarcă traseul (GPX)</a></div>
                             </div>
                         </div>
                     </div>
@@ -195,6 +203,9 @@
             <img id="list-toggle" src="assets/images/list.png" width="30px"/>
             {{#message}}
                 <div id="message">{{message}}</div>
+                <div id="actions">
+                    <span id="search" class="link">Căutați altă locație</span> sau <span id="all-tracks" class="link">vedeți toate traseele.</span>
+                </div>
             {{/message}}
 		</script>
 		

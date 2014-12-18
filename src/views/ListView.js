@@ -8,19 +8,22 @@
 			"#list #list-toggle": {
 				click: "onListToggleClick"
 			},
-            
             "#list #article": {
                 click: "onLinksClick"
             },
-            
             "#list #download": {
                 click: "onLinksClick"
             },
-            
             "#list .track": {
                 click: "onTrackClick",
-				//hover: "onTrackHover"
-			}
+				hover: "onTrackHover"
+			},
+            "#list #search": {
+                click: "onOpenSearch"
+            },
+            "#list #all-tracks": {
+                click: "onShowAllTracks"
+            }
 		},
 		
 		init: function( cfg ) {
@@ -28,14 +31,20 @@
 			// Call super
 			this._parent( cfg );
             this.noTracksMsg = cfg.noTracksMsg ? cfg.noTracksMsg : "No tracks found!"
+            this.onReady = cfg.onReady;
+            
+            if (this.onReady) {
+                TRACKS.bind(this.onReady, this);
+            }
 		},
 		
 		register: function()
 		{
-			this.onMessage("tracksLoaded", this.onTracksLoaded);
-            this.onMessage("noTracksLoaded", this.onNoTracksLoaded);
+			this.onMessage("showTracks", this.onShowTracks);
+            this.onMessage("noTracksToShow", this.onNoTracksToShow);
             this.onMessage("closeList", this.onCloseList);
             this.onMessage("selectTrackInList", this.onSelectTrack);
+            this.onMessage("stateChanged", this.onStateChanged);
 		},
 		
 		render: function()
@@ -51,7 +60,10 @@
                 });
             }
             
-			
+            if (this.onReady) {
+                this.onReady();
+            }
+            
 			return this;
 		},
         
@@ -96,7 +108,7 @@
             var isOpen = jQuery("#list").css("left") == "0px" ? true : false;
             
             if (isOpen) {
-                jQuery("#list").animate({left: "-=360px"}, 200, null);
+                jQuery("#list").animate({left: "-=330px"}, 200, null);
             }
         },
         
@@ -139,14 +151,13 @@
         onTrackHover: function (evt) {
             var index = parseInt(evt.currentTarget.id.split('-')[1]);
             var track = this.tracksManager.getTrackByIndex(index);
-            this.sendMessage("showTrackHoverTooltip", track);
+            this.sendMessage("showTrackTooltip", track);
         },
-		
 		
 		/*
 		 * Messages
 		 */
-		onTracksLoaded: function (tracks) {
+		onShowTracks: function (tracks) {
             if (!tracks || tracks.length === 0) {
                 return;
             }
@@ -158,7 +169,7 @@
             this.open();
         },
         
-        onNoTracksLoaded: function () {
+        onNoTracksToShow: function () {
             this.render();
             this.open();
         },
@@ -177,6 +188,21 @@
         
         onLinksClick: function (evt) {
             evt.stopPropagation();
+        },
+        
+        onStateChanged: function (msg) {
+            if (msg.currentState === TRACKS.App.States.TRACK_INFO) {
+                this.close();
+            }
+        },
+        
+        onOpenSearch: function () {
+            this.sendMessage("openSearch");
+            this.close();
+        },
+        
+        onShowAllTracks: function () {
+            this.sendMessage("showTracks", this.tracksManager.allTracks);
         }
 		
 	});
