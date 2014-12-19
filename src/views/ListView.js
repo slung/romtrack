@@ -210,6 +210,8 @@
         },
         
         onShowAllTracks: function () {
+            this.tracksManager.tracks = this.tracksManager.allTracks;
+            this.sendMessage("emptySearch");
             this.sendMessage("showTracks", this.tracksManager.allTracks);
         }
 		

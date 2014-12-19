@@ -1166,6 +1166,7 @@
 		{
             this.onMessage("openSearch", this.onOpenSearch);
             this.onMessage("closeSearch", this.onCloseSearch);
+            this.onMessage("emptySearch", this.onEmptySearch);
             this.onMessage("stateChanged", this.onStateChanged);
 		},
 		
@@ -1218,6 +1219,7 @@
             
             if (tracksInBounds && tracksInBounds.length > 0) {
                 this.tracksManager.tracks = tracksInBounds;
+                this.sendMessage("setCenterMarker", location);
                 this.sendMessage("showTracks", tracksInBounds);
             } else {
                 this.sendMessage("setCenter", location);
@@ -1366,6 +1368,10 @@
             if (msg.currentState === TRACKS.App.States.TRACK_INFO) {
                 this.close();
             }
+        },
+        
+        onEmptySearch: function () {
+            this.setInputValue("");
         }
 	});
 	
@@ -1586,6 +1592,8 @@
         },
         
         onShowAllTracks: function () {
+            this.tracksManager.tracks = this.tracksManager.allTracks;
+            this.sendMessage("emptySearch");
             this.sendMessage("showTracks", this.tracksManager.allTracks);
         }
 		
