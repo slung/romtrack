@@ -226,7 +226,10 @@
 										address: address,
 										bounds: this.geocodeBounds
 									};
+                                    
+                                    this.geocodedLocation = msg;
 
+                                    this.fire('changeState', {state: TRACKS.App.States.DEFAULT});
 									this.fire('userGeocoded', msg);
 									
 					  			}, this )
@@ -234,6 +237,7 @@
 					  	);
 					}, this), 
 					TRACKS.bind( function( error ) {
+                        this.geocodedLocation = null;
 						this.fire('userNotGeocoded');
 					}, this)
 				);
@@ -560,15 +564,33 @@
             return new google.maps.LatLng(lat2.toDeg(), lon2.toDeg());
         },
         
-        getTracksInBounds: function (points, bounds) {
-            if (!points || !bounds || points.length == 0) {
+        getTracksWithinLocationBounds: function (points, location, radius) {
+            var center = null,
+                centerBounds = null,
+                searchBounds = null,
+                pointsInBounds = [],
+                ne = null,
+                se = null,
+                sw = null;
+            
+            if (!points || !location || points.length == 0) {
                 return;
             }
             
-            var pointsInBounds = [];
+            // Establish search location bounds
+            center = new google.maps.LatLng(location.lat, location.lon);
+            centerBounds = new google.maps.LatLngBounds(new google.maps.LatLng(location.bounds[0], location.bounds[1]), new google.maps.LatLng(location.bounds[2], location.bounds[3]));
+            
+            //Establish search area bounds
+            ne = this.getPointAtDistanceFromPoint(center, 45, radius);
+            se = this.getPointAtDistanceFromPoint(center, 135, radius);
+            sw = this.getPointAtDistanceFromPoint(center, 245, radius);
+            
+            searchBounds = new google.maps.LatLngBounds(sw, ne);
+            searchBounds.extend(se);
             
             for (var i = 0; i < points.length; i++) {
-                if (bounds.contains(points[i].points[0]) || bounds.contains(points[i].points[points[i].points.length - 1])) {
+                if (searchBounds.contains(points[i].points[0]) || searchBounds.contains(points[i].points[points[i].points.length - 1])) {
                     pointsInBounds.push(points[i]);
                 }
             }
@@ -727,6 +749,7 @@
 		register: function()
 		{
             this.onMessage("setCenter", this.onSetCenter);
+            this.onMessage("setCenterMarker", this.setCenterMarker);
 			this.onMessage("setZoom", this.onSetZoom);
             this.onMessage("fitMapToBounds", this.onFitMapToBounds);
             this.onMessage("showTracks", this.onShowTracks);
@@ -787,6 +810,16 @@
             
             var theCenter = new google.maps.LatLng( center.lat, center.lon );
             
+            this.setCenterMarker(center);
+			this.map.setCenter(theCenter);
+        },
+        
+        setCenterMarker: function (center) {
+            if ( !center || !center.lat || !center.lon)
+				return;
+            
+            var theCenter = new google.maps.LatLng( center.lat, center.lon );
+            
             // if center marker already exists, change position; if not create it
             if (this.centerMarker) {
                 this.centerMarker.setPosition(theCenter);
@@ -799,8 +832,6 @@
                     }
                 });
             }
-			
-			this.map.setCenter(theCenter);
         },
 		
 		createMarker: function (markerInfo)
@@ -969,11 +1000,17 @@
 		 */
 		onUserGeocoded: function( msg )
 		{
-			if ( !msg || !msg.lat || !msg.lon )
+			if (!msg || !msg.lat || !msg.lon) {
 				return;
+            }
             
-            this.setCenter(msg);
-            this.setZoom(this.zoom);
+            if (this.geoOperations.getTracksWithinLocationBounds(this.tracksManager.tracks, msg, this.app.views[0].searchRadius).length > 0) {
+                this.setCenterMarker(msg);
+                return;
+            } else {
+                this.setCenter(msg);
+                this.setZoom(this.zoom);
+            }
 		},
 		
 		/*
@@ -985,11 +1022,20 @@
 		},
         
         onShowTracks: function (msg) {
+            var boundsToFit = null;
+            
             this.removeTracks();
             this.addTracks(msg);
             
             if (this.app.state == TRACKS.App.States.SEARCH || this.app.state == TRACKS.App.States.DEFAULT) {
-                this.map.fitBounds(this.geoOperations.getTracksStartPointBounds(msg));
+                boundsToFit = this.geoOperations.getTracksStartPointBounds(msg);
+                
+                // Included geocoded location to be within bounds to fit
+                if (this.dataManager.geocodedLocation) {
+                    boundsToFit.extend(new google.maps.LatLng(this.dataManager.geocodedLocation.lat, this.dataManager.geocodedLocation.lon));
+                }
+                
+                this.map.fitBounds(boundsToFit);
             }
         },
         
@@ -1070,7 +1116,7 @@
          },
         
         onTrackMarkerOver: function (marker) {
-            if (this.app.state == TRACKS.App.States.TRACK_INFO || this.map.getZoom() > 8) {
+            if (this.app.state == TRACKS.App.States.TRACK_INFO) {
                 return;
             }
             
@@ -1167,25 +1213,16 @@
         search: function (location) {
             this.sendMessage("changeState", {state: TRACKS.App.States.SEARCH});
             
-            // Establish search location bounds
-            var center = new google.maps.LatLng(location.lat, location.lon);
-            var centerBounds = new google.maps.LatLngBounds(new google.maps.LatLng(location.bounds[0], location.bounds[1]), new google.maps.LatLng(location.bounds[2], location.bounds[3]));
-            
-            //Establish search area bounds
-            var ne = this.geoOperations.getPointAtDistanceFromPoint(center, 45, this.searchRadius);
-            var se = this.geoOperations.getPointAtDistanceFromPoint(center, 135, this.searchRadius);
-            var sw = this.geoOperations.getPointAtDistanceFromPoint(center, 245, this.searchRadius);
-            
-            var searchBounds = new google.maps.LatLngBounds(sw, ne);
-            searchBounds.extend(se);
-            var tracksInBounds = this.geoOperations.getTracksInBounds(this.tracksManager.tracks, searchBounds);
+            // Get tracks near location
+            var tracksInBounds = this.geoOperations.getTracksWithinLocationBounds(this.tracksManager.tracks, location, this.searchRadius);
             
             if (tracksInBounds && tracksInBounds.length > 0) {
                 this.tracksManager.tracks = tracksInBounds;
                 this.sendMessage("showTracks", tracksInBounds);
             } else {
+                this.sendMessage("setCenter", location);
                 this.sendMessage("noTracksToShow");
-                this.sendMessage("fitMapToBounds", centerBounds);
+                this.sendMessage("fitMapToBounds", new google.maps.LatLngBounds(new google.maps.LatLng(location.bounds[0], location.bounds[1]), new google.maps.LatLng(location.bounds[2], location.bounds[3])));
             }
         },
         
@@ -1285,11 +1322,14 @@
             var index = evt.target.id.split('-')[1];
 			var suggestion = this.suggestions[index];
 			
+            this.dataManager.geocodedLocation = suggestion;
+            
 			this.setInputValue( suggestion.address );
 			this.removeSuggestions();
-            
-            this.sendMessage("changeState", {state: TRACKS.App.States.SEARCH});
             this.search(suggestion);
+            
+            this.sendMessage("setCenterMarker", suggestion);
+            this.sendMessage("changeState", {state: TRACKS.App.States.SEARCH});
         },
 		
 		/*
@@ -1300,7 +1340,7 @@
 			if ( !location || !location.address )
 				return;
 				
-			this.setInputValue( location.address );
+			this.setInputValue(location.address);
             this.search(location);
             this.open();
 		},
@@ -1459,6 +1499,9 @@
 
                 // Save track index
                 this.selectedTrackIndex = index;
+                
+                // Scroll to track
+                jQuery("#list #tracks").mCustomScrollbar("scrollTo", "#trackitem-" + index, {scrollInertia: 3000})
             } else {
                 // Deselect track
                 this.toggleTrackDetails(index);
@@ -1476,18 +1519,21 @@
         },
         
         onTrackClick: function (evt) {
-            var index = parseInt(evt.currentTarget.id.split('-')[1]);
+            var index = parseInt(evt.currentTarget.id.split('-')[1]),
+                track = this.tracksManager.getTrackByIndex(index);
             
             this.selectTrack(index);
             
-            var track = this.tracksManager.getTrackByIndex(index);
             this.sendMessage("selectTrackOnMap", track);
         },
         
         onTrackHover: function (evt) {
-            var index = parseInt(evt.currentTarget.id.split('-')[1]);
-            var track = this.tracksManager.getTrackByIndex(index);
-            this.sendMessage("showTrackTooltip", track);
+            var index = parseInt(evt.currentTarget.id.split('-')[1]),
+                track = this.tracksManager.getTrackByIndex(index);
+            
+            if (this.app.views[1].map.getZoom() < 9) {
+                this.sendMessage("showTrackTooltip", track);
+            }
         },
 		
 		/*
@@ -1506,6 +1552,8 @@
         },
         
         onNoTracksToShow: function () {
+            this.tracks = [];
+            
             this.render();
             this.open();
         },

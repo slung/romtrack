@@ -55,6 +55,7 @@
 		register: function()
 		{
             this.onMessage("setCenter", this.onSetCenter);
+            this.onMessage("setCenterMarker", this.setCenterMarker);
 			this.onMessage("setZoom", this.onSetZoom);
             this.onMessage("fitMapToBounds", this.onFitMapToBounds);
             this.onMessage("showTracks", this.onShowTracks);
@@ -115,6 +116,16 @@
             
             var theCenter = new google.maps.LatLng( center.lat, center.lon );
             
+            this.setCenterMarker(center);
+			this.map.setCenter(theCenter);
+        },
+        
+        setCenterMarker: function (center) {
+            if ( !center || !center.lat || !center.lon)
+				return;
+            
+            var theCenter = new google.maps.LatLng( center.lat, center.lon );
+            
             // if center marker already exists, change position; if not create it
             if (this.centerMarker) {
                 this.centerMarker.setPosition(theCenter);
@@ -127,8 +138,6 @@
                     }
                 });
             }
-			
-			this.map.setCenter(theCenter);
         },
 		
 		createMarker: function (markerInfo)
@@ -297,11 +306,17 @@
 		 */
 		onUserGeocoded: function( msg )
 		{
-			if ( !msg || !msg.lat || !msg.lon )
+			if (!msg || !msg.lat || !msg.lon) {
 				return;
+            }
             
-            this.setCenter(msg);
-            this.setZoom(this.zoom);
+            if (this.geoOperations.getTracksWithinLocationBounds(this.tracksManager.tracks, msg, this.app.views[0].searchRadius).length > 0) {
+                this.setCenterMarker(msg);
+                return;
+            } else {
+                this.setCenter(msg);
+                this.setZoom(this.zoom);
+            }
 		},
 		
 		/*
@@ -313,11 +328,20 @@
 		},
         
         onShowTracks: function (msg) {
+            var boundsToFit = null;
+            
             this.removeTracks();
             this.addTracks(msg);
             
             if (this.app.state == TRACKS.App.States.SEARCH || this.app.state == TRACKS.App.States.DEFAULT) {
-                this.map.fitBounds(this.geoOperations.getTracksStartPointBounds(msg));
+                boundsToFit = this.geoOperations.getTracksStartPointBounds(msg);
+                
+                // Included geocoded location to be within bounds to fit
+                if (this.dataManager.geocodedLocation) {
+                    boundsToFit.extend(new google.maps.LatLng(this.dataManager.geocodedLocation.lat, this.dataManager.geocodedLocation.lon));
+                }
+                
+                this.map.fitBounds(boundsToFit);
             }
         },
         
@@ -398,7 +422,7 @@
          },
         
         onTrackMarkerOver: function (marker) {
-            if (this.app.state == TRACKS.App.States.TRACK_INFO || this.map.getZoom() > 8) {
+            if (this.app.state == TRACKS.App.States.TRACK_INFO) {
                 return;
             }
             

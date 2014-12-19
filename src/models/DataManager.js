@@ -127,7 +127,10 @@
 										address: address,
 										bounds: this.geocodeBounds
 									};
+                                    
+                                    this.geocodedLocation = msg;
 
+                                    this.fire('changeState', {state: TRACKS.App.States.DEFAULT});
 									this.fire('userGeocoded', msg);
 									
 					  			}, this )
@@ -135,6 +138,7 @@
 					  	);
 					}, this), 
 					TRACKS.bind( function( error ) {
+                        this.geocodedLocation = null;
 						this.fire('userNotGeocoded');
 					}, this)
 				);

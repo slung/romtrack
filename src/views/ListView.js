@@ -123,6 +123,9 @@
 
                 // Save track index
                 this.selectedTrackIndex = index;
+                
+                // Scroll to track
+                jQuery("#list #tracks").mCustomScrollbar("scrollTo", "#trackitem-" + index, {scrollInertia: 3000})
             } else {
                 // Deselect track
                 this.toggleTrackDetails(index);
@@ -140,18 +143,21 @@
         },
         
         onTrackClick: function (evt) {
-            var index = parseInt(evt.currentTarget.id.split('-')[1]);
+            var index = parseInt(evt.currentTarget.id.split('-')[1]),
+                track = this.tracksManager.getTrackByIndex(index);
             
             this.selectTrack(index);
             
-            var track = this.tracksManager.getTrackByIndex(index);
             this.sendMessage("selectTrackOnMap", track);
         },
         
         onTrackHover: function (evt) {
-            var index = parseInt(evt.currentTarget.id.split('-')[1]);
-            var track = this.tracksManager.getTrackByIndex(index);
-            this.sendMessage("showTrackTooltip", track);
+            var index = parseInt(evt.currentTarget.id.split('-')[1]),
+                track = this.tracksManager.getTrackByIndex(index);
+            
+            if (this.app.views[1].map.getZoom() < 9) {
+                this.sendMessage("showTrackTooltip", track);
+            }
         },
 		
 		/*
@@ -170,6 +176,8 @@
         },
         
         onNoTracksToShow: function () {
+            this.tracks = [];
+            
             this.render();
             this.open();
         },

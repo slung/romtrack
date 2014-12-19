@@ -29,15 +29,33 @@
             return new google.maps.LatLng(lat2.toDeg(), lon2.toDeg());
         },
         
-        getTracksInBounds: function (points, bounds) {
-            if (!points || !bounds || points.length == 0) {
+        getTracksWithinLocationBounds: function (points, location, radius) {
+            var center = null,
+                centerBounds = null,
+                searchBounds = null,
+                pointsInBounds = [],
+                ne = null,
+                se = null,
+                sw = null;
+            
+            if (!points || !location || points.length == 0) {
                 return;
             }
             
-            var pointsInBounds = [];
+            // Establish search location bounds
+            center = new google.maps.LatLng(location.lat, location.lon);
+            centerBounds = new google.maps.LatLngBounds(new google.maps.LatLng(location.bounds[0], location.bounds[1]), new google.maps.LatLng(location.bounds[2], location.bounds[3]));
+            
+            //Establish search area bounds
+            ne = this.getPointAtDistanceFromPoint(center, 45, radius);
+            se = this.getPointAtDistanceFromPoint(center, 135, radius);
+            sw = this.getPointAtDistanceFromPoint(center, 245, radius);
+            
+            searchBounds = new google.maps.LatLngBounds(sw, ne);
+            searchBounds.extend(se);
             
             for (var i = 0; i < points.length; i++) {
-                if (bounds.contains(points[i].points[0]) || bounds.contains(points[i].points[points[i].points.length - 1])) {
+                if (searchBounds.contains(points[i].points[0]) || searchBounds.contains(points[i].points[points[i].points.length - 1])) {
                     pointsInBounds.push(points[i]);
                 }
             }

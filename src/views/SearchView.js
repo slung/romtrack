@@ -81,25 +81,16 @@
         search: function (location) {
             this.sendMessage("changeState", {state: TRACKS.App.States.SEARCH});
             
-            // Establish search location bounds
-            var center = new google.maps.LatLng(location.lat, location.lon);
-            var centerBounds = new google.maps.LatLngBounds(new google.maps.LatLng(location.bounds[0], location.bounds[1]), new google.maps.LatLng(location.bounds[2], location.bounds[3]));
-            
-            //Establish search area bounds
-            var ne = this.geoOperations.getPointAtDistanceFromPoint(center, 45, this.searchRadius);
-            var se = this.geoOperations.getPointAtDistanceFromPoint(center, 135, this.searchRadius);
-            var sw = this.geoOperations.getPointAtDistanceFromPoint(center, 245, this.searchRadius);
-            
-            var searchBounds = new google.maps.LatLngBounds(sw, ne);
-            searchBounds.extend(se);
-            var tracksInBounds = this.geoOperations.getTracksInBounds(this.tracksManager.tracks, searchBounds);
+            // Get tracks near location
+            var tracksInBounds = this.geoOperations.getTracksWithinLocationBounds(this.tracksManager.tracks, location, this.searchRadius);
             
             if (tracksInBounds && tracksInBounds.length > 0) {
                 this.tracksManager.tracks = tracksInBounds;
                 this.sendMessage("showTracks", tracksInBounds);
             } else {
+                this.sendMessage("setCenter", location);
                 this.sendMessage("noTracksToShow");
-                this.sendMessage("fitMapToBounds", centerBounds);
+                this.sendMessage("fitMapToBounds", new google.maps.LatLngBounds(new google.maps.LatLng(location.bounds[0], location.bounds[1]), new google.maps.LatLng(location.bounds[2], location.bounds[3])));
             }
         },
         
@@ -199,11 +190,14 @@
             var index = evt.target.id.split('-')[1];
 			var suggestion = this.suggestions[index];
 			
+            this.dataManager.geocodedLocation = suggestion;
+            
 			this.setInputValue( suggestion.address );
 			this.removeSuggestions();
-            
-            this.sendMessage("changeState", {state: TRACKS.App.States.SEARCH});
             this.search(suggestion);
+            
+            this.sendMessage("setCenterMarker", suggestion);
+            this.sendMessage("changeState", {state: TRACKS.App.States.SEARCH});
         },
 		
 		/*
@@ -214,7 +208,7 @@
 			if ( !location || !location.address )
 				return;
 				
-			this.setInputValue( location.address );
+			this.setInputValue(location.address);
             this.search(location);
             this.open();
 		},
