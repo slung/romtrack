@@ -1165,6 +1165,12 @@
             this.searchRadius = cfg.searchRadius || 100;
             this.countryCode = cfg.countryCode;
             
+            this.sendAnalytics = cfg.sendAnalytics;
+            
+            if (this.sendAnalytics) {
+                TRACKS.bind(this.sendAnalytics, this);
+            }
+            
 			this.dataManager.on('userGeocoded', TRACKS.bind( this.onUserGeocoded, this));
             this.dataManager.on('userNotGeocoded', TRACKS.bind( this.onUserNotGeocoded, this));
 		},
@@ -1352,6 +1358,9 @@
 			this.setInputValue(location.address);
             this.search(location);
             this.open();
+            
+            // Send to analytics
+            this.sendAnalytics("User Geocoded", location.address);
 		},
         
         onUserNotGeocoded: function()

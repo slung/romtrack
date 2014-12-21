@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 	<head>
 		<title>Tracks</title>
@@ -16,7 +16,20 @@
 <!--    	<script type="text/javascript" src="http://maps.google.com/maps/api/js?v=3.3&sensor=false&language=en"></script>-->
         <script type="text/javascript" src="http://maps.google.com/maps/api/js?libraries=geometry&sensor=true"></script>
         <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-	    
+        
+        <!-- Google Analytics -->
+        <script>
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-54715600-1', {
+              'cookieDomain': 'apphb.com',
+              'allowlinker': true
+            });
+            ga('send', 'pageview');
+        </script>
 	    
 	    <script type="text/javascript" src="libs/jquery-1.7.2.min.js"></script>
 	    <script type="text/javascript" src="libs/js.class.js"></script>
@@ -57,7 +70,14 @@
 								templates: {
 									main: $j.trim( TRACKS.one("#search-tpl").innerHTML ),
                                     suggestions: $j.trim( TRACKS.one("#suggestions-tpl").innerHTML )
-								}
+								},
+                                sendAnalytics: function (action, label) {
+                                    if (!action || !label) {
+                                        return;
+                                    }
+                                    
+                                    ga('send', 'event', 'Search', action, label);
+                                }
 							}),
 							/*
 							 * Map View
