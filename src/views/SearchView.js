@@ -167,9 +167,6 @@
             
             jQuery("#search input").animate({left: 0}, 200, null);
             jQuery("#search img").animate({left: "290px"}, 200, null);
-            
-            // Send to analytics
-            this.sendAnalytics("Open Input", "Open Input");
         },
         
         close: function () {
@@ -181,9 +178,6 @@
             
             jQuery("#search input").animate({left: "-=290px"}, 200, null);
             jQuery("#search img").animate({left: 0}, 200, null);
-            
-            // Send to analytics
-            this.sendAnalytics("Close Input", "Close Input");
         },
 		
 		/*

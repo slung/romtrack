@@ -105,9 +105,6 @@
             
             if (!isOpen) {
                 jQuery("#list").animate({left: 0}, 200, null);
-                
-                // Send to analytics
-                this.sendAnalytics("Open list", "Open list");
             }
         },
         
@@ -116,9 +113,6 @@
             
             if (isOpen) {
                 jQuery("#list").animate({left: "-=330px"}, 200, null);
-                
-                // Send to analytics
-                this.sendAnalytics("Close list", "Close list");
             }
         },
         
