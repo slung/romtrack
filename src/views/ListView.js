@@ -211,6 +211,7 @@
         
         onShowAllTracks: function () {
             this.tracksManager.tracks = this.tracksManager.allTracks;
+            this.sendMessage("changeState", {state: TRACKS.App.States.DEFAULT});
             this.sendMessage("emptySearch");
             this.sendMessage("showTracks", this.tracksManager.allTracks);
         }

@@ -66,6 +66,7 @@
             this.onMessage("showElevationMarker", this.onShowElevationMarker);
             this.onMessage("hideElevationMarker", this.onHideElevationMarker);
             this.onMessage("panBy", this.onPanBy);
+            this.onMessage("emptySearch", this.onEmptySearch);
 		},
 		
 		render: function()
@@ -128,6 +129,7 @@
             
             // if center marker already exists, change position; if not create it
             if (this.centerMarker) {
+                this.centerMarker.setMap(this.map);
                 this.centerMarker.setPosition(theCenter);
             } else {
                 this.centerMarker = this.createMarker({
@@ -410,6 +412,11 @@
             }
             
             this.map.panBy(offset.x, offset.y);
+        },
+        
+        onEmptySearch: function () {
+            // Hide center marker
+            this.centerMarker.setMap(null);
         },
 		
 		/*
