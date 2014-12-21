@@ -1215,7 +1215,7 @@
             this.sendMessage("changeState", {state: TRACKS.App.States.SEARCH});
             
             // Get tracks near location
-            var tracksInBounds = this.geoOperations.getTracksWithinLocationBounds(this.tracksManager.tracks, location, this.searchRadius);
+            var tracksInBounds = this.geoOperations.getTracksWithinLocationBounds(this.tracksManager.allTracks, location, this.searchRadius);
             
             if (tracksInBounds && tracksInBounds.length > 0) {
                 this.tracksManager.tracks = tracksInBounds;
