@@ -89,7 +89,14 @@
 								zoom: 3,
 								templates: {
                                     tooltipTemplate: $j.trim( TRACKS.one("#tooltip-tpl").innerHTML )
-								}	
+								},
+                                sendAnalytics: function (action, label) {
+                                    if (!action || !label) {
+                                        return;
+                                    }
+                                    
+                                    ga('send', 'event', 'Map', action, label);
+                                }	
 							}),
                             /*
 							 * List View
@@ -107,6 +114,13 @@
                                     $j("#list #tracks").mCustomScrollbar({
                                         theme: "minimal-dark"
                                     });
+                                },
+                                sendAnalytics: function (action, label) {
+                                    if (!action || !label) {
+                                        return;
+                                    }
+                                    
+                                    ga('send', 'event', 'List', action, label);
                                 }
 							}),
                             /*

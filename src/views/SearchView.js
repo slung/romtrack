@@ -100,6 +100,9 @@
                 this.sendMessage("noTracksToShow");
                 this.sendMessage("fitMapToBounds", new google.maps.LatLngBounds(new google.maps.LatLng(location.bounds[0], location.bounds[1]), new google.maps.LatLng(location.bounds[2], location.bounds[3])));
             }
+            
+            // Send to analytics
+            this.sendAnalytics("Tracks near - " + location.address, tracksInBounds.length);
         },
         
         addSuggestions: function (suggestions) {
@@ -164,6 +167,9 @@
             
             jQuery("#search input").animate({left: 0}, 200, null);
             jQuery("#search img").animate({left: "290px"}, 200, null);
+            
+            // Send to analytics
+            this.sendAnalytics("Open Input", "Open Input");
         },
         
         close: function () {
@@ -175,6 +181,9 @@
             
             jQuery("#search input").animate({left: "-=290px"}, 200, null);
             jQuery("#search img").animate({left: 0}, 200, null);
+            
+            // Send to analytics
+            this.sendAnalytics("Close Input", "Close Input");
         },
 		
 		/*
@@ -219,9 +228,6 @@
 			this.setInputValue(location.address);
             this.search(location);
             this.open();
-            
-            // Send to analytics
-            this.sendAnalytics("User Geocoded", location.address);
 		},
         
         onUserNotGeocoded: function()

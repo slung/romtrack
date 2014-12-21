@@ -32,7 +32,11 @@
 			this._parent( cfg );
             this.noTracksMsg = cfg.noTracksMsg ? cfg.noTracksMsg : "No tracks found!"
             this.onReady = cfg.onReady;
+            this.sendAnalytics = cfg.sendAnalytics;
             
+            if (this.sendAnalytics) {
+                TRACKS.bind(this.sendAnalytics, this);
+            }
             if (this.onReady) {
                 TRACKS.bind(this.onReady, this);
             }
@@ -101,6 +105,9 @@
             
             if (!isOpen) {
                 jQuery("#list").animate({left: 0}, 200, null);
+                
+                // Send to analytics
+                this.sendAnalytics("Open list", "Open list");
             }
         },
         
@@ -109,6 +116,9 @@
             
             if (isOpen) {
                 jQuery("#list").animate({left: "-=330px"}, 200, null);
+                
+                // Send to analytics
+                this.sendAnalytics("Close list", "Close list");
             }
         },
         
@@ -125,7 +135,12 @@
                 this.selectedTrackIndex = index;
                 
                 // Scroll to track
-                jQuery("#list #tracks").mCustomScrollbar("scrollTo", "#trackitem-" + index, {scrollInertia: 3000})
+                jQuery("#list #tracks").mCustomScrollbar("scrollTo", "#trackitem-" + index, {scrollInertia: 3000});
+                
+                var track = this.tracksManager.getTrackByIndex(index);
+                
+                // Send to analytics
+                this.sendAnalytics("Track Selected", "Name: " + track.name + " | URL: " + track.url);
             } else {
                 // Deselect track
                 this.toggleTrackDetails(index);
@@ -214,6 +229,9 @@
             this.sendMessage("changeState", {state: TRACKS.App.States.DEFAULT});
             this.sendMessage("emptySearch");
             this.sendMessage("showTracks", this.tracksManager.allTracks);
+            
+            // Send to analytics
+            this.sendAnalytics("Show all tracks", "Show all tracks");
         }
 		
 	});

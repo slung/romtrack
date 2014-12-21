@@ -744,6 +744,11 @@
                 lat: 46.08371401022221,
                 lon: 23.73289867187499
             };
+            this.sendAnalytics = cfg.sendAnalytics;
+            
+            if (this.sendAnalytics) {
+                TRACKS.bind(this.sendAnalytics, this);
+            }
 		},
 		
 		register: function()
@@ -1120,6 +1125,9 @@
          onTrackMarkerClick: function (marker) {
              this.selectTrack(marker.track);
              this.sendMessage("selectTrackInList", marker.track);
+             
+             // Send to analytics
+            this.sendAnalytics("Marker clicked", "Name: " + marker.track.name + " | URL: " + marker.track.url);
          },
         
         onTrackMarkerOver: function (marker) {
@@ -1239,6 +1247,9 @@
                 this.sendMessage("noTracksToShow");
                 this.sendMessage("fitMapToBounds", new google.maps.LatLngBounds(new google.maps.LatLng(location.bounds[0], location.bounds[1]), new google.maps.LatLng(location.bounds[2], location.bounds[3])));
             }
+            
+            // Send to analytics
+            this.sendAnalytics("Tracks near - " + location.address, tracksInBounds.length);
         },
         
         addSuggestions: function (suggestions) {
@@ -1303,6 +1314,9 @@
             
             jQuery("#search input").animate({left: 0}, 200, null);
             jQuery("#search img").animate({left: "290px"}, 200, null);
+            
+            // Send to analytics
+            this.sendAnalytics("Open Input", "Open Input");
         },
         
         close: function () {
@@ -1314,6 +1328,9 @@
             
             jQuery("#search input").animate({left: "-=290px"}, 200, null);
             jQuery("#search img").animate({left: 0}, 200, null);
+            
+            // Send to analytics
+            this.sendAnalytics("Close Input", "Close Input");
         },
 		
 		/*
@@ -1358,9 +1375,6 @@
 			this.setInputValue(location.address);
             this.search(location);
             this.open();
-            
-            // Send to analytics
-            this.sendAnalytics("User Geocoded", location.address);
 		},
         
         onUserNotGeocoded: function()
@@ -1430,7 +1444,11 @@
 			this._parent( cfg );
             this.noTracksMsg = cfg.noTracksMsg ? cfg.noTracksMsg : "No tracks found!"
             this.onReady = cfg.onReady;
+            this.sendAnalytics = cfg.sendAnalytics;
             
+            if (this.sendAnalytics) {
+                TRACKS.bind(this.sendAnalytics, this);
+            }
             if (this.onReady) {
                 TRACKS.bind(this.onReady, this);
             }
@@ -1499,6 +1517,9 @@
             
             if (!isOpen) {
                 jQuery("#list").animate({left: 0}, 200, null);
+                
+                // Send to analytics
+                this.sendAnalytics("Open list", "Open list");
             }
         },
         
@@ -1507,6 +1528,9 @@
             
             if (isOpen) {
                 jQuery("#list").animate({left: "-=330px"}, 200, null);
+                
+                // Send to analytics
+                this.sendAnalytics("Close list", "Close list");
             }
         },
         
@@ -1523,7 +1547,12 @@
                 this.selectedTrackIndex = index;
                 
                 // Scroll to track
-                jQuery("#list #tracks").mCustomScrollbar("scrollTo", "#trackitem-" + index, {scrollInertia: 3000})
+                jQuery("#list #tracks").mCustomScrollbar("scrollTo", "#trackitem-" + index, {scrollInertia: 3000});
+                
+                var track = this.tracksManager.getTrackByIndex(index);
+                
+                // Send to analytics
+                this.sendAnalytics("Track Selected", "Name: " + track.name + " | URL: " + track.url);
             } else {
                 // Deselect track
                 this.toggleTrackDetails(index);
@@ -1612,6 +1641,9 @@
             this.sendMessage("changeState", {state: TRACKS.App.States.DEFAULT});
             this.sendMessage("emptySearch");
             this.sendMessage("showTracks", this.tracksManager.allTracks);
+            
+            // Send to analytics
+            this.sendAnalytics("Show all tracks", "Show all tracks");
         }
 		
 	});

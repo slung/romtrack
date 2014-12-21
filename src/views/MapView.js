@@ -50,6 +50,11 @@
                 lat: 46.08371401022221,
                 lon: 23.73289867187499
             };
+            this.sendAnalytics = cfg.sendAnalytics;
+            
+            if (this.sendAnalytics) {
+                TRACKS.bind(this.sendAnalytics, this);
+            }
 		},
 		
 		register: function()
@@ -426,6 +431,9 @@
          onTrackMarkerClick: function (marker) {
              this.selectTrack(marker.track);
              this.sendMessage("selectTrackInList", marker.track);
+             
+             // Send to analytics
+            this.sendAnalytics("Marker clicked", "Name: " + marker.track.name + " | URL: " + marker.track.url);
          },
         
         onTrackMarkerOver: function (marker) {
