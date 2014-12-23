@@ -68,7 +68,7 @@ body {
     
     padding: 3px 3px 3px 7px;
     background-color: #FFF;
-    z-index: 9999;
+    z-index: 1;
     
     -webkit-border-top-right-radius: 5px;
     -webkit-border-bottom-right-radius: 5px;
@@ -76,6 +76,13 @@ body {
     -moz-border-radius-bottomright: 5px;
     border-top-right-radius: 5px;
     border-bottom-right-radius: 5px;
+}
+
+.romtrack {
+    margin: 0;
+    position: relative;
+    width: 100%;
+    height: 100%;
 }
 
 #search img:hover {
@@ -94,7 +101,7 @@ body {
     padding: 3px 5px;
     border: none;
     outline: none;
-    z-index: 9999;
+    z-index: 1;
     border-radius: 0;
 }
 
@@ -106,7 +113,7 @@ body {
     
     background-color: #FFFFFF;
     
-    z-index: 99999;
+    z-index: 1;
     padding: 3px 5px;
     
     -webkit-border-bottom-right-radius: 5px;
@@ -187,7 +194,7 @@ body {
     
     background-color: #FFFFFF;
     padding: 15px;
-    z-index: 99999;
+    z-index: 1;
     
     -webkit-border-bottom-right-radius: 5px;
     -moz-border-radius-bottomright: 5px;
@@ -240,7 +247,7 @@ body {
     overflow-x: hidden;
     overflow-y: auto;
     
-    z-index: 99999;
+    z-index: 1;
 }
 
 #list #list-toggle {
@@ -250,7 +257,7 @@ body {
     
     padding: 3px 3px 3px 7px;
     background-color: #FFF;
-    z-index: 9999;
+    z-index: 1;
     
     -webkit-border-top-right-radius: 5px;
     -webkit-border-bottom-right-radius: 5px;
@@ -324,14 +331,14 @@ body {
 /* Elevation profile */
 #elevation-profile {
     width: 700px;
-    height: 170px;
+    height: 140px;
     
     position: absolute;
     bottom: 0;
     left: 50%;
     margin-left: -350px;
     
-    z-index: 9999;
+    z-index: 1;
 }
 
 #elevation-profile #content {
@@ -346,7 +353,7 @@ body {
     
     padding: 3px 3px 3px 7px;
     background-color: #FFF;
-    z-index: 9999;
+    z-index: 1;
     
     -webkit-border-top-right-radius: 5px;
     -webkit-border-top-left-radius: 5px;

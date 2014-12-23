@@ -42,6 +42,8 @@
                 return;
             }
             
+            TRACKS.mask(TRACKS.MASK_ELEMENT);
+            
             // Establish search location bounds
             center = new google.maps.LatLng(location.lat, location.lon);
             centerBounds = new google.maps.LatLngBounds(new google.maps.LatLng(location.bounds[0], location.bounds[1]), new google.maps.LatLng(location.bounds[2], location.bounds[3]));
@@ -59,6 +61,8 @@
                     pointsInBounds.push(points[i]);
                 }
             }
+            
+            TRACKS.unmask(TRACKS.MASK_ELEMENT);
             
             return pointsInBounds;
         },

@@ -101,7 +101,6 @@
 {
 	// Singleton instance
 	var dataManager = null;
-	var MASK_ELEMENT = ".page";
 	
 	var DataManager = TRACKS.EventManager.extend({
 		
@@ -109,7 +108,6 @@
 		filters: [],
 		rowCount: 20,
 		cluster: null,
-		showLoading: false,
 		
 		// stores loaded tables
 		tables: [],
@@ -204,6 +202,8 @@
 		{
 			if(navigator.geolocation)
 			{
+                TRACKS.mask(TRACKS.MASK_ELEMENT);
+                
 				navigator.geolocation.getCurrentPosition( 
 					TRACKS.bind( function( pos ) 
 					{
@@ -229,6 +229,7 @@
                                     
                                     this.geocodedLocation = msg;
 
+                                    TRACKS.unmask(TRACKS.MASK_ELEMENT);
                                     this.fire('changeState', {state: TRACKS.App.States.DEFAULT});
 									this.fire('userGeocoded', msg);
 									
@@ -238,6 +239,7 @@
 					}, this), 
 					TRACKS.bind( function( error ) {
                         this.geocodedLocation = null;
+                        TRACKS.unmask(TRACKS.MASK_ELEMENT);
 						this.fire('userNotGeocoded');
 					}, this)
 				);
@@ -577,6 +579,8 @@
                 return;
             }
             
+            TRACKS.mask(TRACKS.MASK_ELEMENT);
+            
             // Establish search location bounds
             center = new google.maps.LatLng(location.lat, location.lon);
             centerBounds = new google.maps.LatLngBounds(new google.maps.LatLng(location.bounds[0], location.bounds[1]), new google.maps.LatLng(location.bounds[2], location.bounds[3]));
@@ -594,6 +598,8 @@
                     pointsInBounds.push(points[i]);
                 }
             }
+            
+            TRACKS.unmask(TRACKS.MASK_ELEMENT);
             
             return pointsInBounds;
         },
@@ -798,6 +804,12 @@
 				google.maps.event.removeListener(listener);
 			}, this));
             
+            google.maps.event.addListener(this.map, 'idle', TRACKS.bind(function(evt) {
+				if (this.app.state === TRACKS.App.States.TRACK_INFO) {
+                    TRACKS.unmask(TRACKS.MASK_ELEMENT);
+                }
+			}, this));
+            
 			return this;
 		},
 		
@@ -919,7 +931,7 @@
             if (!track) {
                 return;
             }
-
+            
             this.removeTooltip();
             this.deselectTrack(this.lastTrack);
             
@@ -927,6 +939,8 @@
                 this.lastTrack = null;
                 return;
             }
+            
+            TRACKS.mask(TRACKS.MASK_ELEMENT);
             
             // Show tooltip
             this.showTooltip(track.startMarker, true);
@@ -944,6 +958,8 @@
             
             // Show track end marker
             this.lastTrack.endMarker.setMap(this.map);
+            
+            //TRACKS.unmask(TRACKS.MASK_ELEMENT);
         },
         
         deselectTrack: function (track) {
@@ -1031,6 +1047,13 @@
         onShowTracks: function (msg) {
             var boundsToFit = null;
             
+            TRACKS.mask(TRACKS.MASK_ELEMENT);
+            
+            // Reset last saved track when all tracks are displayed
+            if (msg.length === this.tracksManager.allTracks.length) {
+                this.lastTrack = null;
+            }
+            
             this.removeTracks();
             this.addTracks(msg);
             
@@ -1044,6 +1067,8 @@
                 
                 this.map.fitBounds(boundsToFit);
             }
+            
+            TRACKS.unmask(TRACKS.MASK_ELEMENT);
         },
         
         onFitMapToBounds: function (bounds) {
@@ -1511,6 +1536,10 @@
             
             if (!isOpen) {
                 jQuery("#list").animate({left: 0}, 200, null);
+                
+                if (this.app.state === TRACKS.App.States.TRACK_INFO){
+                    this.sendMessage("panBy", {x: -150, y: 0});
+                }
             }
         },
         
@@ -1518,11 +1547,17 @@
             var isOpen = jQuery("#list").css("left") == "0px" ? true : false;
             
             if (isOpen) {
-                jQuery("#list").animate({left: "-=330px"}, 200, null);
+                jQuery("#list").animate({left: "-330px"}, 200, null);
+                
+                if (this.app.state === TRACKS.App.States.TRACK_INFO){
+                    this.sendMessage("panBy", {x: 150, y: 0});
+                }
             }
         },
         
         selectTrack: function (index) {
+            TRACKS.mask(TRACKS.MASK_ELEMENT);
+            
             if (index !== this.selectedTrackIndex) {
             
                 // Deselect previous track first
@@ -1535,7 +1570,7 @@
                 this.selectedTrackIndex = index;
                 
                 // Scroll to track
-                jQuery("#list #tracks").mCustomScrollbar("scrollTo", "#trackitem-" + index, {scrollInertia: 3000});
+                jQuery("#list #tracks").mCustomScrollbar("scrollTo", "#trackitem-" + index);
                 
                 var track = this.tracksManager.getTrackByIndex(index);
                 
@@ -1548,6 +1583,8 @@
                 // Reset selected track index
                 this.selectedTrackIndex = -1;
             }
+            
+            //TRACKS.unmask(TRACKS.MASK_ELEMENT);
         },
 		
 		/*
@@ -1615,7 +1652,7 @@
         
         onStateChanged: function (msg) {
             if (msg.currentState === TRACKS.App.States.TRACK_INFO) {
-                this.close();
+                this.sendMessage("panBy", {x: -150, y: 0});
             }
         },
         
@@ -1625,6 +1662,9 @@
         },
         
         onShowAllTracks: function () {
+            // Reset selected track index
+            this.selectedTrackIndex = -1;
+            
             this.tracksManager.tracks = this.tracksManager.allTracks;
             this.sendMessage("changeState", {state: TRACKS.App.States.DEFAULT});
             this.sendMessage("emptySearch");
@@ -1675,7 +1715,7 @@
 
             var options = {
                 width: 700,
-                height: 170,
+                height: 140,
                 hAxis: {title: this.xAxisName,  titleTextStyle: {color: '#333'}},
                 vAxis: {title: this.yAxisName, minValue: 0, titleTextStyle: {color: '#333'}},
                 legend: 'none'
@@ -1720,7 +1760,7 @@
             var isOpen = jQuery("#elevation-profile").css("bottom") == "0px" ? true : false;
             
             if (!isOpen) {
-                this.sendMessage("panBy", {x: 0, y: 100});
+                this.sendMessage("panBy", {x: 0, y: 130});
                 jQuery("#elevation-profile").animate({bottom: 0}, 200, null);
             }
         },
@@ -1729,7 +1769,7 @@
             var isOpen = jQuery("#elevation-profile").css("bottom") == "0px" ? true : false;
             
             if (isOpen) {
-                this.sendMessage("panBy", {x: 0, y: -100});
+                this.sendMessage("panBy", {x: 0, y: -130});
                 jQuery("#elevation-profile").animate({bottom: "-=170px"}, 200, null);
             }
         },
@@ -1911,6 +1951,11 @@
 	// Publish
 	TRACKS.App = TracksApp;
 	
+    // Mask
+    TRACKS.MASK_ELEMENT = ".romtrack";
+    TRACKS.MASK_MESSAGE = "Lucrăm :)";
+    
+    // States
 	TRACKS.App.States = {};
     TRACKS.App.States.DEFAULT = 'default';
 	TRACKS.App.States.SEARCH = 'search';

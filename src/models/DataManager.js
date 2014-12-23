@@ -2,7 +2,6 @@
 {
 	// Singleton instance
 	var dataManager = null;
-	var MASK_ELEMENT = ".page";
 	
 	var DataManager = TRACKS.EventManager.extend({
 		
@@ -10,7 +9,6 @@
 		filters: [],
 		rowCount: 20,
 		cluster: null,
-		showLoading: false,
 		
 		// stores loaded tables
 		tables: [],
@@ -105,6 +103,8 @@
 		{
 			if(navigator.geolocation)
 			{
+                TRACKS.mask(TRACKS.MASK_ELEMENT);
+                
 				navigator.geolocation.getCurrentPosition( 
 					TRACKS.bind( function( pos ) 
 					{
@@ -130,6 +130,7 @@
                                     
                                     this.geocodedLocation = msg;
 
+                                    TRACKS.unmask(TRACKS.MASK_ELEMENT);
                                     this.fire('changeState', {state: TRACKS.App.States.DEFAULT});
 									this.fire('userGeocoded', msg);
 									
@@ -139,6 +140,7 @@
 					}, this), 
 					TRACKS.bind( function( error ) {
                         this.geocodedLocation = null;
+                        TRACKS.unmask(TRACKS.MASK_ELEMENT);
 						this.fire('userNotGeocoded');
 					}, this)
 				);

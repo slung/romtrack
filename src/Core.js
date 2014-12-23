@@ -130,6 +130,11 @@
 	// Publish
 	TRACKS.App = TracksApp;
 	
+    // Mask
+    TRACKS.MASK_ELEMENT = ".romtrack";
+    TRACKS.MASK_MESSAGE = "Lucrăm :)";
+    
+    // States
 	TRACKS.App.States = {};
     TRACKS.App.States.DEFAULT = 'default';
 	TRACKS.App.States.SEARCH = 'search';

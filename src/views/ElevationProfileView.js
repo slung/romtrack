@@ -32,7 +32,7 @@
 
             var options = {
                 width: 700,
-                height: 170,
+                height: 140,
                 hAxis: {title: this.xAxisName,  titleTextStyle: {color: '#333'}},
                 vAxis: {title: this.yAxisName, minValue: 0, titleTextStyle: {color: '#333'}},
                 legend: 'none'
@@ -77,7 +77,7 @@
             var isOpen = jQuery("#elevation-profile").css("bottom") == "0px" ? true : false;
             
             if (!isOpen) {
-                this.sendMessage("panBy", {x: 0, y: 100});
+                this.sendMessage("panBy", {x: 0, y: 130});
                 jQuery("#elevation-profile").animate({bottom: 0}, 200, null);
             }
         },
@@ -86,7 +86,7 @@
             var isOpen = jQuery("#elevation-profile").css("bottom") == "0px" ? true : false;
             
             if (isOpen) {
-                this.sendMessage("panBy", {x: 0, y: -100});
+                this.sendMessage("panBy", {x: 0, y: -130});
                 jQuery("#elevation-profile").animate({bottom: "-=170px"}, 200, null);
             }
         },

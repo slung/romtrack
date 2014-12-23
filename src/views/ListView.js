@@ -105,6 +105,10 @@
             
             if (!isOpen) {
                 jQuery("#list").animate({left: 0}, 200, null);
+                
+                if (this.app.state === TRACKS.App.States.TRACK_INFO){
+                    this.sendMessage("panBy", {x: -150, y: 0});
+                }
             }
         },
         
@@ -112,11 +116,17 @@
             var isOpen = jQuery("#list").css("left") == "0px" ? true : false;
             
             if (isOpen) {
-                jQuery("#list").animate({left: "-=330px"}, 200, null);
+                jQuery("#list").animate({left: "-330px"}, 200, null);
+                
+                if (this.app.state === TRACKS.App.States.TRACK_INFO){
+                    this.sendMessage("panBy", {x: 150, y: 0});
+                }
             }
         },
         
         selectTrack: function (index) {
+            TRACKS.mask(TRACKS.MASK_ELEMENT);
+            
             if (index !== this.selectedTrackIndex) {
             
                 // Deselect previous track first
@@ -129,7 +139,7 @@
                 this.selectedTrackIndex = index;
                 
                 // Scroll to track
-                jQuery("#list #tracks").mCustomScrollbar("scrollTo", "#trackitem-" + index, {scrollInertia: 3000});
+                jQuery("#list #tracks").mCustomScrollbar("scrollTo", "#trackitem-" + index);
                 
                 var track = this.tracksManager.getTrackByIndex(index);
                 
@@ -142,6 +152,8 @@
                 // Reset selected track index
                 this.selectedTrackIndex = -1;
             }
+            
+            //TRACKS.unmask(TRACKS.MASK_ELEMENT);
         },
 		
 		/*
@@ -209,7 +221,7 @@
         
         onStateChanged: function (msg) {
             if (msg.currentState === TRACKS.App.States.TRACK_INFO) {
-                this.close();
+                this.sendMessage("panBy", {x: -150, y: 0});
             }
         },
         
@@ -219,6 +231,9 @@
         },
         
         onShowAllTracks: function () {
+            // Reset selected track index
+            this.selectedTrackIndex = -1;
+            
             this.tracksManager.tracks = this.tracksManager.allTracks;
             this.sendMessage("changeState", {state: TRACKS.App.States.DEFAULT});
             this.sendMessage("emptySearch");

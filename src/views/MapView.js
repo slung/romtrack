@@ -104,6 +104,12 @@
 				google.maps.event.removeListener(listener);
 			}, this));
             
+            google.maps.event.addListener(this.map, 'idle', TRACKS.bind(function(evt) {
+				if (this.app.state === TRACKS.App.States.TRACK_INFO) {
+                    TRACKS.unmask(TRACKS.MASK_ELEMENT);
+                }
+			}, this));
+            
 			return this;
 		},
 		
@@ -225,7 +231,7 @@
             if (!track) {
                 return;
             }
-
+            
             this.removeTooltip();
             this.deselectTrack(this.lastTrack);
             
@@ -233,6 +239,8 @@
                 this.lastTrack = null;
                 return;
             }
+            
+            TRACKS.mask(TRACKS.MASK_ELEMENT);
             
             // Show tooltip
             this.showTooltip(track.startMarker, true);
@@ -250,6 +258,8 @@
             
             // Show track end marker
             this.lastTrack.endMarker.setMap(this.map);
+            
+            //TRACKS.unmask(TRACKS.MASK_ELEMENT);
         },
         
         deselectTrack: function (track) {
@@ -337,6 +347,13 @@
         onShowTracks: function (msg) {
             var boundsToFit = null;
             
+            TRACKS.mask(TRACKS.MASK_ELEMENT);
+            
+            // Reset last saved track when all tracks are displayed
+            if (msg.length === this.tracksManager.allTracks.length) {
+                this.lastTrack = null;
+            }
+            
             this.removeTracks();
             this.addTracks(msg);
             
@@ -350,6 +367,8 @@
                 
                 this.map.fitBounds(boundsToFit);
             }
+            
+            TRACKS.unmask(TRACKS.MASK_ELEMENT);
         },
         
         onFitMapToBounds: function (bounds) {
