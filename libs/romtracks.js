@@ -1770,7 +1770,7 @@
             
             if (isOpen) {
                 this.sendMessage("panBy", {x: 0, y: -130});
-                jQuery("#elevation-profile").animate({bottom: "-=170px"}, 200, null);
+                jQuery("#elevation-profile").animate({bottom: "-140px"}, 200, null);
             }
         },
 		
