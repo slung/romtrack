@@ -1556,10 +1556,10 @@
         },
         
         selectTrack: function (index) {
-            TRACKS.mask(TRACKS.MASK_ELEMENT);
-            
             if (index !== this.selectedTrackIndex) {
             
+                TRACKS.mask(TRACKS.MASK_ELEMENT);
+                
                 // Deselect previous track first
                 this.toggleTrackDetails(this.selectedTrackIndex);
 
@@ -1583,8 +1583,6 @@
                 // Reset selected track index
                 this.selectedTrackIndex = -1;
             }
-            
-            //TRACKS.unmask(TRACKS.MASK_ELEMENT);
         },
 		
 		/*
