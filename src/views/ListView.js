@@ -2,7 +2,7 @@
 {
 	var ListView = TRACKS.View.extend({
 		
-        selectedTrackIndex: -1,
+        selectedDataIndex: -1,
         
 		events: {
 			"#list #list-toggle": {
@@ -14,15 +14,15 @@
             "#list #download": {
                 click: "onLinksClick"
             },
-            "#list .track": {
-                click: "onTrackClick",
-				hover: "onTrackHover"
+            "#list .data": {
+                click: "onDataItemClick",
+				hover: "onDataItemHover"
 			},
             "#list #search": {
                 click: "onOpenSearch"
             },
-            "#list #all-tracks": {
-                click: "onShowAllTracks"
+            "#list #all-data": {
+                click: "onShowAllData"
             }
 		},
 		
@@ -30,7 +30,7 @@
 			
 			// Call super
 			this._parent( cfg );
-            this.noTracksMsg = cfg.noTracksMsg ? cfg.noTracksMsg : "No tracks found!"
+            this.noTracksMsg = cfg.noTracksMsg ? cfg.noTracksMsg : "No data found!"
             this.onReady = cfg.onReady;
             this.sendAnalytics = cfg.sendAnalytics;
             
@@ -44,23 +44,21 @@
 		
 		register: function()
 		{
-			this.onMessage("showTracks", this.onShowTracks);
-            this.onMessage("noTracksToShow", this.onNoTracksToShow);
+			this.onMessage("showData", this.onShowData);
             this.onMessage("closeList", this.onCloseList);
-            this.onMessage("selectTrackInList", this.onSelectTrack);
+            this.onMessage("selectDataItemInList", this.onSelectDataItem);
             this.onMessage("stateChanged", this.onStateChanged);
 		},
 		
 		render: function()
 		{
-            if (!this.tracks || this.tracks.length == 0) {
+            if (!this.data || this.data.length == 0) {
                 this.container.innerHTML = this.mustache(this.templates.empty, {
                     message: this.noTracksMsg
                 });
             } else {
                 this.container.innerHTML = this.mustache(this.templates.main, {
-                    tracks: this.tracks,
-                    nbTracks: this.tracks.length
+                    data: this.data
                 });
             }
             
@@ -83,21 +81,21 @@
             }
         },
         
-        toggleTrackDetails: function (index) {
+        toggleDataDetails: function (index) {
             if (index === -1) {
                 return;
             }
             
             // Expand/contract preview image
-            if (jQuery("#list #trackitem-" + index + " #track-parameters").css("display") === "none") {
-                jQuery("#list #trackitem-" + index + " #preview").css("width", "90px");
-                jQuery("#list #trackitem-" + index + " #preview").css("height", "auto");
+            if (jQuery("#list #dataitem-" + index + " #data-parameters").css("display") === "none") {
+                jQuery("#list #dataitem-" + index + " #preview").css("width", "90px");
+                jQuery("#list #dataitem-" + index + " #preview").css("height", "auto");
             } else {
-                jQuery("#list #trackitem-" + index + " #preview").css("width", "60px");
-                jQuery("#list #trackitem-" + index + " #preview").css("height", "30px");
+                jQuery("#list #dataitem-" + index + " #preview").css("width", "60px");
+                jQuery("#list #dataitem-" + index + " #preview").css("height", "30px");
             }
             
-            jQuery("#list #trackitem-" + index + " #track-parameters").toggle("fast");
+            jQuery("#list #dataitem-" + index + " #data-parameters").toggle("fast");
         },
         
         open: function () {
@@ -106,7 +104,7 @@
             if (!isOpen) {
                 jQuery("#list").animate({left: 0}, 200, null);
                 
-                if (this.app.state === TRACKS.App.States.TRACK_INFO){
+                if (this.app.state === TRACKS.App.States.INFO){
                     this.sendMessage("panBy", {x: -150, y: 0});
                 }
             }
@@ -118,39 +116,37 @@
             if (isOpen) {
                 jQuery("#list").animate({left: "-330px"}, 200, null);
                 
-                if (this.app.state === TRACKS.App.States.TRACK_INFO){
+                if (this.app.state === TRACKS.App.States.INFO){
                     this.sendMessage("panBy", {x: 150, y: 0});
                 }
             }
         },
         
-        selectTrack: function (index) {
-            if (index !== this.selectedTrackIndex) {
+        selectDataItem: function (index) {
+            if (index !== this.selectedDataIndex) {
             
-                TRACKS.mask(TRACKS.MASK_ELEMENT);
-                
                 // Deselect previous track first
-                this.toggleTrackDetails(this.selectedTrackIndex);
+                this.toggleDataDetails(this.selectedDataIndex);
 
                 // Show track details
-                this.toggleTrackDetails(index);
+                this.toggleDataDetails(index);
 
                 // Save track index
-                this.selectedTrackIndex = index;
+                this.selectedDataIndex = index;
                 
                 // Scroll to track
-                jQuery("#list #tracks").mCustomScrollbar("scrollTo", "#trackitem-" + index);
+                jQuery("#list #data").mCustomScrollbar("scrollTo", "#dataitem-" + index);
                 
-                var track = this.tracksManager.getTrackByIndex(index);
+                var track = this.dataManager.getDataByIndex(index);
                 
                 // Send to analytics
                 this.sendAnalytics("Track Selected", "Name: " + track.name + " | URL: " + track.url);
             } else {
                 // Deselect track
-                this.toggleTrackDetails(index);
+                this.toggleDataDetails(index);
                 
                 // Reset selected track index
-                this.selectedTrackIndex = -1;
+                this.selectedDataIndex = -1;
             }
         },
 		
@@ -161,52 +157,41 @@
             this.toggleList();
         },
         
-        onTrackClick: function (evt) {
+        onDataItemClick: function (evt) {
             var index = parseInt(evt.currentTarget.id.split('-')[1]),
-                track = this.tracksManager.getTrackByIndex(index);
+                track = this.dataManager.getDataByIndex(index);
             
-            this.selectTrack(index);
+            this.selectDataItem(index);
             
-            this.sendMessage("selectTrackOnMap", track);
+            this.sendMessage("selectDataItemOnMap", track);
         },
         
-        onTrackHover: function (evt) {
+        onDataItemHover: function (evt) {
             var index = parseInt(evt.currentTarget.id.split('-')[1]),
-                track = this.tracksManager.getTrackByIndex(index);
+                dataItem = this.dataManager.getDataByIndex(index);
             
             if (this.app.views[1].map.getZoom() < 9) {
-                this.sendMessage("showTrackTooltip", track);
+                this.sendMessage("showDataItemTooltip", dataItem);
             }
         },
 		
 		/*
 		 * Messages
 		 */
-		onShowTracks: function (tracks) {
-            if (!tracks || tracks.length === 0) {
-                return;
-            }
-            
+		onShowData: function (data) {
             // Save tracks
-            this.tracks = tracks;
+            this.data = data;
             
             this.render();
             this.open();
         },
         
-        onNoTracksToShow: function () {
-            this.tracks = [];
-            
-            this.render();
-            this.open();
-        },
-        
-        onSelectTrack: function (track) {
+        onSelectDataItem: function (track) {
             if (!track) {
                 return;
             }
             
-            this.selectTrack(track.index);
+            this.selectDataItem(track.index);
         },
         
         onCloseList: function () {
@@ -218,7 +203,7 @@
         },
         
         onStateChanged: function (msg) {
-            if (msg.currentState === TRACKS.App.States.TRACK_INFO) {
+            if (msg.currentState === TRACKS.App.States.INFO) {
                 this.sendMessage("panBy", {x: -150, y: 0});
             }
         },
@@ -228,17 +213,23 @@
             this.close();
         },
         
-        onShowAllTracks: function () {
+        onShowAllData: function () {
             // Reset selected track index
-            this.selectedTrackIndex = -1;
+            this.selectedDataIndex = -1;
             
-            this.tracksManager.tracks = this.tracksManager.allTracks;
             this.sendMessage("changeState", {state: TRACKS.App.States.DEFAULT});
             this.sendMessage("emptySearch");
-            this.sendMessage("showTracks", this.tracksManager.allTracks);
+            
+            if (this.dataManager.poiFilterActive && this.dataManager.trackFilterActive) {
+                this.sendMessage("showData", this.dataManager.pois.concat(this.dataManager.tracks));
+            } else if (this.dataManager.trackFilterActive) {
+                this.sendMessage("showData", this.dataManager.tracks);
+            } else if (this.dataManager.poiFilterActive) {
+                this.sendMessage("showData", this.dataManager.pois);
+            }
             
             // Send to analytics
-            this.sendAnalytics("Show all tracks", "Show all tracks");
+            this.sendAnalytics("Show all data", "Show all data");
         }
 		
 	});

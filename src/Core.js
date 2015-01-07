@@ -138,6 +138,6 @@
 	TRACKS.App.States = {};
     TRACKS.App.States.DEFAULT = 'default';
 	TRACKS.App.States.SEARCH = 'search';
-	TRACKS.App.States.TRACK_INFO = 'trackinfo';
+	TRACKS.App.States.INFO = 'trackinfo';
 	
 }(TRACKS));

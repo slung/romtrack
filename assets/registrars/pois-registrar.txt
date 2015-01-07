@@ -1,0 +1,63 @@
+[
+    {
+        "name": "Biserica Fortificată de la Biertan",
+        "latitude": "46.135337",
+        "longitude": "24.521421",
+        "article": "http://www.amazingromania.net/2015/01/biserica-fortificata-de-la-biertan.html",
+        "preview": "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Previews/biertan.jpg"
+    }, {
+        "name": "Schi în Apuseni",
+        "latitude": "46.511228",
+        "longitude": "22.670846",
+        "article": "http://www.amazingromania.net/2014/12/schi-in-apuseni.html",
+        "preview": "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Previews/vartop.JPG"
+    }, {
+        "name": "Cetatea din Alba Iulia",
+        "latitude": "46.069078",
+        "longitude": "23.567777",
+        "article": "http://www.amazingromania.net/2014/11/cetatea-alba-carolina-din-alba-iulia.html",
+        "preview": "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Previews/cetatea-alba-iulia.jpg"
+    }, {
+        "name": "Peștera Bolii",
+        "latitude": "45.453568",
+        "longitude": "23.318597",
+        "article": "http://www.amazingromania.net/2014/11/pestera-bolii-calare-in-subteran.html",
+        "preview": "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Previews/pestera-bolii.jpg"
+    }, {
+        "name": "Sibiu",
+        "latitude": "45.796665",
+        "longitude": "24.151573",
+        "article": "http://www.amazingromania.net/2014/11/la-sibiu-de-craciun.html",
+        "preview": "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Previews/sibiu.jpg"
+    }, {
+        "name": "Transalpina",
+        "latitude": "45.322386",
+        "longitude": "23.683340",
+        "article": "http://www.amazingromania.net/2014/11/transalpina-cu-masina-la-peste-2000-de.html",
+        "preview": "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Previews/transalpina.jpg"
+    }, {
+        "name": "Iași",
+        "latitude": "47.158248",
+        "longitude": "27.586410",
+        "article": "http://www.amazingromania.net/2014/10/prima-data-la-iasi.html",
+        "preview": "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Previews/iasi.jpg"
+    }, {
+        "name": "Salina Turda",
+        "latitude": "46.587674",
+        "longitude": "23.787489",
+        "article": "http://www.amazingromania.net/2014/10/salina-turda-out-of-this-world.html",
+        "preview": "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Previews/salina-turda.JPG"
+    }, {
+        "name": "Munții Retezat",
+        "latitude": "45.367118",
+        "longitude": "22.873623",
+        "article": "http://www.amazingromania.net/2014/10/muntii-retezat-cei-mai-frumosi-munti.html",
+        "preview": "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Previews/retezat.JPG"
+    }, {
+        "name": "Mocănița din Maramureș",
+        "latitude": "47.714733",
+        "longitude": "24.443341",
+        "article": "http://www.amazingromania.net/2014/10/cu-mocanita-in-maramu.html",
+        "preview": "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Previews/mocanita-maramures.jpg"
+    }
+]

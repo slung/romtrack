@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 	<head>
 		<title>Tracks</title>
@@ -36,10 +36,10 @@
 	    <script type="text/javascript" src="libs/jquery-1.7.2.min.js"></script>
 	    <script type="text/javascript" src="libs/js.class.js"></script>
 		<script type="text/javascript" src="libs/romtracks.jquery-min.js"></script>
-		<script type="text/javascript" src="libs/romtracks-min.js"></script>
+		<script type="text/javascript" src="libs/romtracks.js"></script>
 		<script type="text/javascript" src="libs/mustache.js"></script>
 		<script type="text/javascript" src="libs/jsonp.js"></script>
-		<script type="text/javascript" src="libs/romtracks.helpers-min.js"></script>
+		<script type="text/javascript" src="libs/romtracks.helpers.js"></script>
         <script type="text/javascript" src="libs/infobox.js"></script>
         <script type="text/javascript" src="libs/markerclusterer.js"></script>
         <script type="text/javascript" src="libs/d3.js"></script>
@@ -108,13 +108,13 @@
 								container: TRACKS.one("#list"),
 								renderContainer: TRACKS.one("#list #container"),
 								hideOnStates: [],
-                                noTracksMsg: "Din păcate nu am găsit trasee în jurul locației căutate :(",
+                                noTracksMsg: "Din păcate nu am găsit nimic în jurul locației căutate :(",
 								templates: {
                                     main: $j.trim( TRACKS.one("#list-tpl").innerHTML ),
                                     empty: $j.trim( TRACKS.one("#empty-list-tpl").innerHTML )
 								},
                                 onReady: function () {
-                                    $j("#list #tracks").mCustomScrollbar({
+                                    $j("#list #data").mCustomScrollbar({
                                         theme: "minimal-dark"
                                     });
                                 },
@@ -138,12 +138,39 @@
 								templates: {
                                     main: $j.trim( TRACKS.one("#elevation-profile-tpl").innerHTML )
 								}	
-							})
+							}),
+                            /*
+							 * Filter view
+							 */
+                            new TRACKS.FiltersView({
+                                container: TRACKS.one("#filters"),
+                                renderContainer: TRACKS.one("#filters #container"),
+                                hideOnStates: [],
+                                templates: {
+                                    main: $j.trim( TRACKS.one("#filters-tpl").innerHTML )
+                                }	
+                            })
 						],
                         appReady: function () {
-                            TRACKS.dispatcher.onMessage("tracksInitiated", function () {
-                                //GeolocateUser
-                                TRACKS.DataManager.getInstance().geolocateUser();
+                            TRACKS.poisLoaded = false;
+                            TRACKS.tracksLoaded = false;
+                            
+                            TRACKS.dispatcher.onMessage("poisLoaded", function () {
+                                TRACKS.poisLoaded = true;
+                                
+                                if (TRACKS.tracksLoaded) {
+                                    //GeolocateUser
+                                    TRACKS.DataManager.getInstance().geolocateUser();
+                                }
+                            });
+                            
+                            TRACKS.dispatcher.onMessage("tracksLoaded", function () {
+                                TRACKS.tracksLoaded = true;
+
+                                if (TRACKS.poisLoaded) {
+                                    //GeolocateUser
+                                    TRACKS.DataManager.getInstance().geolocateUser();
+                                }
                             });
                         }
 					});
@@ -161,6 +188,9 @@
 
         <div class="romtrack">
             <div id="search"></div>
+            <div id="filters">
+                <div id="container"></div>
+            </div>
             <div id="list">
                 <div id="container"></div>
             </div>
@@ -194,15 +224,15 @@
         <!-- Tooltip template -->
         <script id="tooltip-tpl" type="text/template">
             <div class="infoWindow yui3-g">
-                <img class="yui3-u" src={{track.preview}} width="50px" height="50px"/>
+                <img class="yui3-u" src={{data.preview}} width="50px" height="50px"/>
                 <div id="details" class="yui3-u">
-                    <div id="name">{{track.name}}</div>
-                    <div id="length"><b>Lungime:</b> {{track.length}} km</div>
-                    <div id="ascent"><b>Urcare:</b> {{track.ascent}} m</div>
-                    <div id="descent"><b>Coborâre:</b> {{track.descent}} m</div>
+                    <div id="name">{{data.name}}</div>
+                    {{#data.length}}<div id="length"><b>Lungime:</b> {{data.length}} km</div>{{/data.length}}
+                    {{#data.ascent}}<div id="ascent"><b>Urcare:</b> {{data.ascent}} m</div>{{/data.ascent}}
+                    {{#data.descent}}<div id="descent"><b>Coborâre:</b> {{data.descent}} m</div>{{/data.descent}}
                     {{#fullDetails}}
-                        <div id="article"><a href={{track.article}} target="_blank">Citește articolul</a></div>
-                        <div id="download"><a href={{track.url}} target="_blank">Descarcă traseul (GPX)</a></div>
+                        {{#data.article}}<div id="article"><a href={{data.article}} target="_blank">Citește articolul</a></div>{{/data.article}}
+                        {{#data.url}}<div id="download"><a href={{data.url}} target="_blank">Descarcă traseul (GPX)</a></div>{{/data.url}}
                     {{/fullDetails}}
                 </div>
             </div>
@@ -212,37 +242,52 @@
         <!-- List template -->
         <script id="list-tpl" type="text/template">
             <div id="header" class="yui3-g">
-                <img id="all-tracks" width="16px" title="Vedeți toate traseele" src="assets/images/refresh.png" />
-                <div id="track-count" class="yui3-u">Am găsit <span id="track-count-number">{{nbTracks}}</span> trasee:</div>
+                <img id="all-data" width="16px" title="Arată tot" src="assets/images/refresh.png" />
             </div>
             <img id="list-toggle" src="assets/images/list.png" width="30px"/>
-            <div id="tracks">
-                {{#tracks}}
-                    <div id="trackitem-{{index}}" class="yui3-g track">
+            <div id="data">
+                {{#data}}
+                    <div id="dataitem-{{index}}" class="yui3-g data">
                         <div class="yui3-u">
                             <img id="preview" src={{preview}} width="60px" height="30px"/>    
                         </div>
                         <div class="yui3-u info">
                             <div id="name">{{name}}</div>
-                            <div id="track-parameters" style="display: none">
-                                <div id="length"><b>Lungime:</b> {{length}} km</div>
-                                <div id="ascent"><b>Urcare:</b> {{ascent}} m</div>
-                                <div id="descent"><b>Coborâre:</b> {{descent}} m</div>
-                                <div id="article"><a href={{article}} target="_blank">Citește articolul</a></div>
-                                <div id="download"><a href={{url}} target="_blank">Descarcă traseul (GPX)</a></div>
+                            <div id="data-parameters" style="display: none">
+                                {{#length}}<div id="length"><b>Lungime:</b> {{length}} km</div>{{/length}}
+                                {{#ascent}}<div id="ascent"><b>Urcare:</b> {{ascent}} m</div>{{/ascent}}
+                                {{#descent}}<div id="descent"><b>Coborâre:</b> {{descent}} m</div>{{/descent}}
+                                {{#article}}<div id="article"><a href={{article}} target="_blank">Citește articolul</a></div>{{/article}}
+                                {{#url}}<div id="download"><a href={{url}} target="_blank">Descarcă traseul (GPX)</a></div>{{/url}}
                             </div>
                         </div>
                     </div>
-                {{/tracks}}
+                {{/data}}
             </div>
 		</script>
+        
+        <!-- Filter template -->
+        <script id="filters-tpl" type="text/template">
+            <img src="assets/images/filter.png" />
+            <div id="checkboxes" class="yui3-g">
+                <div class="filter-item yui3-u">
+                    <input id="pois" name="geographic-data" type="radio"><img class="filter-marker" src="assets/images/poi-marker.png" width="20px"/>Locuri
+                </div>
+                <div class="filter-item yui3-u">
+                    <input id="tracks" name="geographic-data" type="radio"><img class="filter-marker" src="assets/images/marker.png" width="20px"/>Trasee
+                </div>   
+                <div class="filter-item yui3-u">
+                    <input id="pois-and-tracks" name="geographic-data" type="radio" checked>Locuri & Trasee
+                </div>
+            </div>
+        </script>
         
         <script id="empty-list-tpl" type="text/template">
             <img id="list-toggle" src="assets/images/list.png" width="30px"/>
             {{#message}}
                 <div id="message">{{message}}</div>
                 <div id="actions">
-                    <span id="search" class="link">Căutați altă locație</span> sau <span id="all-tracks" class="link">vedeți toate traseele.</span>
+                    <span id="search" class="link">Căutați în altă locație</span> sau <span id="all-data" class="link">vedeți toate datele.</span>
                 </div>
             {{/message}}
 		</script>

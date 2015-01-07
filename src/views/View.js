@@ -16,7 +16,6 @@
 			this.hideOnStates = cfg.hideOnStates || [];
 			this.formatRenderData = cfg.formatRenderData;
 			this.dataManager = TRACKS.DataManager.getInstance();
-            this.tracksManager = TRACKS.TracksManager.getInstance();
             this.geoOperations = TRACKS.GeoOperations.getInstance();
 			this.ajax = TRACKS.AjaxManager.getInstance();
 			

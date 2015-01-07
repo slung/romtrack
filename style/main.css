@@ -51,6 +51,13 @@ body {
     display: none;
 }
 
+.romtrack {
+    margin: 0;
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
 /* Map */
 #map {
     position: absolute;
@@ -76,13 +83,6 @@ body {
     -moz-border-radius-bottomright: 5px;
     border-top-right-radius: 5px;
     border-bottom-right-radius: 5px;
-}
-
-.romtrack {
-    margin: 0;
-    position: relative;
-    width: 100%;
-    height: 100%;
 }
 
 #search img:hover {
@@ -113,7 +113,7 @@ body {
     
     background-color: #FFFFFF;
     
-    z-index: 1;
+    z-index: 100;
     padding: 3px 5px;
     
     -webkit-border-bottom-right-radius: 5px;
@@ -139,6 +139,49 @@ body {
     opacity: 1;
 }
 
+/* Filters */
+#filters #checkboxes {
+    width: 280px;
+
+    position: absolute;
+    top: 90px;
+    left: -290px;
+
+    background-color: #FFFFFF;
+    
+    padding: 10px 5px;
+    border: none;
+    outline: none;
+    z-index: 1;
+    border-radius: 0;
+}
+
+#filters #checkboxes input {
+    margin-left: 6px;
+}
+
+#filters img {
+    position: absolute;
+    top: 90px;
+    left: 0px;
+
+    padding: 3px 3px 4px 7px;
+    background-color: #FFF;
+    z-index: 1;
+
+    -webkit-border-top-right-radius: 5px;
+    -webkit-border-bottom-right-radius: 5px;
+    -moz-border-radius-topright: 5px;
+    -moz-border-radius-bottomright: 5px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+#filters img:hover {
+    cursor: pointer;
+    opacity: 0.95;
+}
+
 /* Tooltip */
 .infoWindow {
     width: 240px;
@@ -161,6 +204,7 @@ body {
 }
 
 .infoWindow #details #name {
+    font-size: 12px;
     font-weight: bold;
     font-style: normal;
 }
@@ -227,20 +271,16 @@ body {
     padding: 5px 0;
 }
 
-#list #header #all-tracks {
+#list #header #all-data {
     margin-right: 20px;
 }
 
-#list #header #all-tracks:hover {
+#list #header #all-data:hover {
     cursor: pointer;
     opacity: 0.8;
 }
 
-#list #header #track-count #track-count-number {
-    color: #D95642;
-}
-
-#list #tracks {
+#list #data {
     
     height: 330px;
     
@@ -272,58 +312,58 @@ body {
     opacity: 0.95;
 }
 
-#list .track {
+#list .data {
     padding: 15px 0 0 0;
     opacity: 0.8;
 }
 
-#list .track:hover {
+#list .data:hover {
     cursor: pointer;
     opacity: 1;
 }
 
-#list .track.selected {
+#list .data.selected {
     color: #D95642;
     opacity: 1;
 }
 
-#list .track .info {
+#list .data .info {
     margin-left: 20px;
 }
 
-#list .track .info #name {
+#list .data .info #name {
     font-size: 13px;
     font-weight: bold;
 }
 
-#list .track .info #track-parameters {
+#list .data .info #data-parameters {
     font-size: 11px;
     font-style: italic;
     
     margin-top: 10px;
 }
 
-#list .track .info #track-parameters div {
+#list .data .info #data-parameters div {
     margin: 0 0 3px 0;
 }
 
-#list .track .info #track-parameters a {
+#list .data .info #data-parameters a {
     color: #D95642;
     text-decoration: none;
 }
 
-#list .track .info #track-parameters a:hover {
+#list .data .info #data-parameters a:hover {
     text-decoration: underline;
 }
 
-#list .track .info #track-details {
+#list .data .info #track-details {
     font-style: italic;
     font-size: 11px;
     color: #8CBFFF;
     margin-top: 10px;
 }
 
-#list .track .info #track-details:hover {
+#list .data .info #track-details:hover {
     cursor: pointer;
     text-decoration: underline;
 }

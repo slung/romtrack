@@ -20,6 +20,7 @@
 		register: function()
 		{
 			this.onMessage("showElevationProfile", this.onShowElevationProfile);
+            this.onMessage("hideElevationProfile", this.onHideElevationProfile);
 		},
 		
 		render: function(track)
@@ -124,9 +125,15 @@
                 return;
             }
             
+            jQuery(this.container).css("display", "block");
+            
             this.track = track;
             
             this.render(track);
+        },
+        
+        onHideElevationProfile: function () {
+            jQuery(this.container).css("display", "none");
         }
 		
 	});

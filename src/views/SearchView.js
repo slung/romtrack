@@ -89,20 +89,25 @@
             this.sendMessage("changeState", {state: TRACKS.App.States.SEARCH});
             
             // Get tracks near location
-            var tracksInBounds = this.geoOperations.getTracksWithinLocationBounds(this.tracksManager.allTracks, location, this.searchRadius);
+            var data = this.dataManager.search(location, this.searchRadius);
             
-            if (tracksInBounds && tracksInBounds.length > 0) {
-                this.tracksManager.tracks = tracksInBounds;
+            if (data && data.length > 0) {
                 this.sendMessage("setCenterMarker", location);
-                this.sendMessage("showTracks", tracksInBounds);
             } else {
                 this.sendMessage("setCenter", location);
-                this.sendMessage("noTracksToShow");
                 this.sendMessage("fitMapToBounds", new google.maps.LatLngBounds(new google.maps.LatLng(location.bounds[0], location.bounds[1]), new google.maps.LatLng(location.bounds[2], location.bounds[3])));
             }
             
+            this.sendMessage("showData", data);
+            
             // Send to analytics
-            this.sendAnalytics("Tracks near - " + location.address, tracksInBounds.length);
+            if (this.dataManager.poiFilterActive && this.dataManager.trackFilterActiveFilterActive) {
+                this.sendAnalytics("POIs & Tracks near - " + location.address, tracksInBounds.length);
+            } else if (this.dataManager.poiFilterActive) {
+                this.sendAnalytics("POIs near - " + location.address, data.length);
+            } else if (this.dataManager.trackFilterActiveFilterActive) {
+                this.sendAnalytics("Tracks near - " + location.address, data.length);
+            }
         },
         
         addSuggestions: function (suggestions) {
@@ -110,8 +115,9 @@
                 return;
             }
 			
-            // Close list before showing suggestions
+            // Close list & filters before showing suggestions
             this.sendMessage("closeList");
+            this.sendMessage("closeFilters");
             
             this.suggestions = suggestions;
             var suggestionsContainer = TRACKS.one( "#suggestions", this.container );
@@ -226,8 +232,11 @@
         
         onUserNotGeocoded: function()
         {
+            var data = this.dataManager.search();
+            
             this.removeSuggestions();
-            this.sendMessage("showTracks", this.tracksManager.allTracks);
+            
+            this.sendMessage("showData", data);
             this.sendMessage("changeState", {state: TRACKS.App.States.DEFAULT});
         },
         
@@ -242,13 +251,14 @@
         },
         
         onStateChanged: function (msg) {
-            if (msg.currentState === TRACKS.App.States.TRACK_INFO) {
+            if (msg.currentState === TRACKS.App.States.INFO) {
                 this.close();
             }
         },
         
         onEmptySearch: function () {
             this.setInputValue("");
+            this.dataManager.location = null;
         }
 	});
 	
