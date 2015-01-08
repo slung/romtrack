@@ -140,8 +140,9 @@ body {
 }
 
 /* Filters */
-#filters #checkboxes {
+#filters #filter-items {
     width: 280px;
+    height: 39px;
 
     position: absolute;
     top: 90px;
@@ -149,18 +150,27 @@ body {
 
     background-color: #FFFFFF;
     
-    padding: 10px 5px;
+    padding: 0px 0px 0px 10px;
     border: none;
     outline: none;
     z-index: 1;
     border-radius: 0;
 }
 
-#filters #checkboxes input {
-    margin-left: 6px;
+#filters #filter-items #all-data {
+    margin: 12px 3px 0 0;
 }
 
-#filters img {
+#filters #filter-items .filter-item {
+    font-size: 12px;
+    margin: 12px 0 0 15px;
+}
+
+#filters #filter-items .filter-item label img {
+    margin-left: 2px;
+}
+
+#filters #filter-toggle {
     position: absolute;
     top: 90px;
     left: 0px;
@@ -180,6 +190,10 @@ body {
 #filters img:hover {
     cursor: pointer;
     opacity: 0.95;
+}
+
+#filters input[type="radio"] {
+    float: left;
 }
 
 /* Tooltip */
@@ -233,11 +247,11 @@ body {
     top: 150px;
     left: -330px;
     
-    width: 300px;
+    width: 310px;
     height: 350px;
     
     background-color: #FFFFFF;
-    padding: 15px;
+    padding: 10px;
     z-index: 1;
     
     -webkit-border-bottom-right-radius: 5px;
@@ -366,6 +380,10 @@ body {
 #list .data .info #track-details:hover {
     cursor: pointer;
     text-decoration: underline;
+}
+
+#list .data #preview {
+    margin-left: 12px;
 }
 
 /* Elevation profile */

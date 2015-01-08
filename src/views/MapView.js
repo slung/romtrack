@@ -285,19 +285,25 @@
         },
         
         showTooltip: function (marker, fullDetails) {
+            var content = null,
+                offset = null,
+                closeBoxURL = fullDetails ? "../../assets/images/close.png" : "";
+            
             this.removeTooltip();
 
-            var content = this.mustache(this.templates.tooltipTemplate, {
-                data: marker.data,
-                fullDetails: fullDetails
-            });
-
-            var closeBoxURL = fullDetails ? "../../assets/images/close.png" : "";
-            var offset = 0;
-            
             if (marker.data instanceof TRACKS.Track) {
+                content = this.mustache(this.templates.trackTooltipTemplate, {
+                    data: marker.data,
+                    fullDetails: fullDetails
+                });
+                
                 offset = fullDetails ? new google.maps.Size(-136, -155) : new google.maps.Size(-136, -125);
             } else {
+                content = this.mustache(this.templates.poiTooltipTemplate, {
+                    data: marker.data,
+                    fullDetails: fullDetails
+                });
+                
                 offset = new google.maps.Size(-136, -120);
             }
             
@@ -461,7 +467,9 @@
         
         onEmptySearch: function () {
             // Hide center marker
-            this.centerMarker.setMap(null);
+            if (this.centerMarker) {
+                this.centerMarker.setMap(null);
+            }
         },
 		
 		/*

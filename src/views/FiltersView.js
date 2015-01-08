@@ -3,19 +3,28 @@
     var FiltersView = TRACKS.View.extend({
 
         events: {
-            "#filters img": {
+            "#filters #filter-toggle": {
                 click: "onFilterIconClick"
             },
             
-            "#filters #checkboxes input": {
+            "#filters #filter-items input": {
                 click: "onFilterClick"
             },
+            "#filters #all-data": {
+                click: "onShowAllData"
+            }
         },
 
         init: function (cfg) {
 
             // Call super
             this._parent(cfg);
+            
+            this.sendAnalytics = cfg.sendAnalytics;
+
+            if (this.sendAnalytics) {
+                TRACKS.bind(this.sendAnalytics, this);
+            }
         },
 
         register: function () {
@@ -32,7 +41,7 @@
         },
         
         isOpen: function () {
-            return jQuery("#filters #checkboxes").css("left") == "0px" ? true : false;
+            return jQuery("#filters #filter-items").css("left") == "0px" ? true : false;
         },
 
         toggle: function () {
@@ -50,7 +59,7 @@
                 return;
             }
 
-            jQuery("#filters #checkboxes").animate({left: 0}, 200, null);
+            jQuery("#filters #filter-items").animate({left: 0}, 200, null);
             jQuery("#filters img").animate({left: "290px"}, 200, null);
         },
 
@@ -59,7 +68,7 @@
                 return;
             }
 
-            jQuery("#filters #checkboxes").animate({left: "-=290px"}, 200, null);
+            jQuery("#filters #filter-items").animate({left: "-=290px"}, 200, null);
             jQuery("#filters img").animate({left: 0}, 200, null);
         },
 
@@ -72,23 +81,48 @@
         },
         
         onFilterClick: function (evt) {
-            if (jQuery("#filters #checkboxes #pois").is(":checked")) {
+            if (jQuery("#filters #filter-items #pois").is(":checked")) {
                 this.dataManager.poiFilterActive = true;
                 this.dataManager.trackFilterActive = false;
+                
+                // Send to analytics
+                this.sendAnalytics("Filter selected", "POI");
             }
             
-            if (jQuery("#filters #checkboxes #tracks").is(":checked")) {
+            if (jQuery("#filters #filter-items #tracks").is(":checked")) {
                 this.dataManager.poiFilterActive = false;
                 this.dataManager.trackFilterActive = true;
+                
+                // Send to analytics
+                this.sendAnalytics("Filter selected", "Tracks");
             }
             
-            if (jQuery("#filters #checkboxes #pois-and-tracks").is(":checked")) {
+            if (jQuery("#filters #filter-items #pois-and-tracks").is(":checked")) {
                 this.dataManager.poiFilterActive = true;
                 this.dataManager.trackFilterActive = true;
+                
+                // Send to analytics
+                this.sendAnalytics("Filter selected", "POI + Tracks");
             }
             
             var data = this.dataManager.search();
             this.sendMessage("showData", data);
+        },
+        
+        onShowAllData: function () {
+            // Reset selected filter
+            jQuery("#filters #filter-items #pois-and-tracks").prop('checked', true);
+            
+            // Reset filters in DataManager
+            this.dataManager.poiFilterActive = true;
+            this.dataManager.trackFilterActive = true;
+            
+            this.sendMessage("changeState", {state: TRACKS.App.States.DEFAULT});
+            this.sendMessage("emptySearch");
+            this.sendMessage("showData", this.dataManager.search());
+
+            // Send to analytics
+            this.sendAnalytics("Show all data", "Show all data");
         },
         
         /*

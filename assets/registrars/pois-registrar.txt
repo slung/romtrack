@@ -1,6 +1,6 @@
 [
     {
-        "name": "Biserica Fortificată de la Biertan",
+        "name": "Biserica Fortificată Biertan",
         "latitude": "46.135337",
         "longitude": "24.521421",
         "article": "http://www.amazingromania.net/2015/01/biserica-fortificata-de-la-biertan.html",

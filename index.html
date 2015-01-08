@@ -91,7 +91,8 @@
 								hideOnStates: [],
 								zoom: 3,
 								templates: {
-                                    tooltipTemplate: $j.trim( TRACKS.one("#tooltip-tpl").innerHTML )
+                                    trackTooltipTemplate: $j.trim(TRACKS.one("#track-tooltip-tpl").innerHTML),
+                                    poiTooltipTemplate: $j.trim(TRACKS.one("#poi-tooltip-tpl").innerHTML)
 								},
                                 sendAnalytics: function (action, label) {
                                     if (!action || !label) {
@@ -148,7 +149,14 @@
                                 hideOnStates: [],
                                 templates: {
                                     main: $j.trim( TRACKS.one("#filters-tpl").innerHTML )
-                                }	
+                                },
+                                sendAnalytics: function (action, label) {
+                                    if (!action || !label) {
+                                        return;
+                                    }
+
+                                    ga('send', 'event', 'Filters', action, label);
+                                }
                             })
 						],
                         appReady: function () {
@@ -221,8 +229,8 @@
             {{/suggestions}}
 	   </script>
         
-        <!-- Tooltip template -->
-        <script id="tooltip-tpl" type="text/template">
+        <!-- Track Tooltip template -->
+        <script id="track-tooltip-tpl" type="text/template">
             <div class="infoWindow yui3-g">
                 <img class="yui3-u" src={{data.preview}} width="50px" height="50px"/>
                 <div id="details" class="yui3-u">
@@ -239,15 +247,29 @@
             <div class="tail"></div>
 		</script>
         
+        <!-- POI Tooltip template -->
+        <script id="poi-tooltip-tpl" type="text/template">
+            <div class="infoWindow yui3-g">
+                <img class="yui3-u" src={{data.preview}} width="50px" height="50px"/>
+                <div id="details" class="yui3-u">
+                    <div id="name" style="text-align: center; line-height: 50px;">{{data.name}}</div>
+                    {{#fullDetails}}
+                        {{#data.article}}<div id="article"><a href={{data.article}} target="_blank">Citește articolul</a></div>{{/data.article}}
+                    {{/fullDetails}}
+            </div>
+            </div>
+            <div class="tail"></div>
+        </script>
+        
         <!-- List template -->
         <script id="list-tpl" type="text/template">
-            <div id="header" class="yui3-g">
-                <img id="all-data" width="16px" title="Arată tot" src="assets/images/refresh.png" />
-            </div>
             <img id="list-toggle" src="assets/images/list.png" width="30px"/>
             <div id="data">
                 {{#data}}
                     <div id="dataitem-{{index}}" class="yui3-g data">
+                        <div class="yui3-u">
+                            <img src={{startMarkerUrl}} height="30px"/>
+                        </div>
                         <div class="yui3-u">
                             <img id="preview" src={{preview}} width="60px" height="30px"/>    
                         </div>
@@ -268,13 +290,24 @@
         
         <!-- Filter template -->
         <script id="filters-tpl" type="text/template">
-            <img src="assets/images/filter.png" />
-            <div id="checkboxes" class="yui3-g">
-                <div class="filter-item yui3-u">
-                    <input id="pois" name="geographic-data" type="radio"><img class="filter-marker" src="assets/images/poi-marker.png" width="20px"/>Locuri
+            <img id="filter-toggle" src="assets/images/filter.png" />
+            <div id="filter-items" class="yui3-g">
+                <div class="yui3-u">
+                    <img id="all-data" width="11px" title="Arată toate locurile ți traseele" src="assets/images/refresh.png" />
                 </div>
                 <div class="filter-item yui3-u">
-                    <input id="tracks" name="geographic-data" type="radio"><img class="filter-marker" src="assets/images/marker.png" width="20px"/>Trasee
+                    <input id="pois" name="geographic-data" type="radio">
+                    <label for="pois">
+                        <img class="filter-marker" src="assets/images/poi-marker.png" width="11px"/>
+                    </label>
+                    <label for="pois">Locuri</label>
+                </div>
+                <div class="filter-item yui3-u">
+                    <input id="tracks" name="geographic-data" type="radio">
+                    <label for="tracks">
+                        <img class="filter-marker" src="assets/images/marker.png" width="11px"/>
+                        <span>Trasee</span>
+                    </label>
                 </div>   
                 <div class="filter-item yui3-u">
                     <input id="pois-and-tracks" name="geographic-data" type="radio" checked>Locuri & Trasee

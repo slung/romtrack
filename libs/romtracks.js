@@ -1060,19 +1060,25 @@
         },
         
         showTooltip: function (marker, fullDetails) {
+            var content = null,
+                offset = null,
+                closeBoxURL = fullDetails ? "../../assets/images/close.png" : "";
+            
             this.removeTooltip();
 
-            var content = this.mustache(this.templates.tooltipTemplate, {
-                data: marker.data,
-                fullDetails: fullDetails
-            });
-
-            var closeBoxURL = fullDetails ? "../../assets/images/close.png" : "";
-            var offset = 0;
-            
             if (marker.data instanceof TRACKS.Track) {
+                content = this.mustache(this.templates.trackTooltipTemplate, {
+                    data: marker.data,
+                    fullDetails: fullDetails
+                });
+                
                 offset = fullDetails ? new google.maps.Size(-136, -155) : new google.maps.Size(-136, -125);
             } else {
+                content = this.mustache(this.templates.poiTooltipTemplate, {
+                    data: marker.data,
+                    fullDetails: fullDetails
+                });
+                
                 offset = new google.maps.Size(-136, -120);
             }
             
@@ -1236,7 +1242,9 @@
         
         onEmptySearch: function () {
             // Hide center marker
-            this.centerMarker.setMap(null);
+            if (this.centerMarker) {
+                this.centerMarker.setMap(null);
+            }
         },
 		
 		/*
@@ -1557,9 +1565,6 @@
 			},
             "#list #search": {
                 click: "onOpenSearch"
-            },
-            "#list #all-data": {
-                click: "onShowAllData"
             }
 		},
 		
@@ -1574,6 +1579,7 @@
             if (this.sendAnalytics) {
                 TRACKS.bind(this.sendAnalytics, this);
             }
+            
             if (this.onReady) {
                 TRACKS.bind(this.onReady, this);
             }
@@ -1585,6 +1591,7 @@
             this.onMessage("closeList", this.onCloseList);
             this.onMessage("selectDataItemInList", this.onSelectDataItem);
             this.onMessage("stateChanged", this.onStateChanged);
+            this.onMessage("emptySearch", this.onEmptySearch);
 		},
 		
 		render: function()
@@ -1750,25 +1757,9 @@
             this.close();
         },
         
-        onShowAllData: function () {
-            // Reset selected track index
+        onEmptySearch: function () {
             this.selectedDataIndex = -1;
-            
-            this.sendMessage("changeState", {state: TRACKS.App.States.DEFAULT});
-            this.sendMessage("emptySearch");
-            
-            if (this.dataManager.poiFilterActive && this.dataManager.trackFilterActive) {
-                this.sendMessage("showData", this.dataManager.pois.concat(this.dataManager.tracks));
-            } else if (this.dataManager.trackFilterActive) {
-                this.sendMessage("showData", this.dataManager.tracks);
-            } else if (this.dataManager.poiFilterActive) {
-                this.sendMessage("showData", this.dataManager.pois);
-            }
-            
-            // Send to analytics
-            this.sendAnalytics("Show all data", "Show all data");
         }
-		
 	});
 	
 	// Publish
@@ -1926,19 +1917,28 @@
     var FiltersView = TRACKS.View.extend({
 
         events: {
-            "#filters img": {
+            "#filters #filter-toggle": {
                 click: "onFilterIconClick"
             },
             
-            "#filters #checkboxes input": {
+            "#filters #filter-items input": {
                 click: "onFilterClick"
             },
+            "#filters #all-data": {
+                click: "onShowAllData"
+            }
         },
 
         init: function (cfg) {
 
             // Call super
             this._parent(cfg);
+            
+            this.sendAnalytics = cfg.sendAnalytics;
+
+            if (this.sendAnalytics) {
+                TRACKS.bind(this.sendAnalytics, this);
+            }
         },
 
         register: function () {
@@ -1955,7 +1955,7 @@
         },
         
         isOpen: function () {
-            return jQuery("#filters #checkboxes").css("left") == "0px" ? true : false;
+            return jQuery("#filters #filter-items").css("left") == "0px" ? true : false;
         },
 
         toggle: function () {
@@ -1973,7 +1973,7 @@
                 return;
             }
 
-            jQuery("#filters #checkboxes").animate({left: 0}, 200, null);
+            jQuery("#filters #filter-items").animate({left: 0}, 200, null);
             jQuery("#filters img").animate({left: "290px"}, 200, null);
         },
 
@@ -1982,7 +1982,7 @@
                 return;
             }
 
-            jQuery("#filters #checkboxes").animate({left: "-=290px"}, 200, null);
+            jQuery("#filters #filter-items").animate({left: "-=290px"}, 200, null);
             jQuery("#filters img").animate({left: 0}, 200, null);
         },
 
@@ -1995,23 +1995,48 @@
         },
         
         onFilterClick: function (evt) {
-            if (jQuery("#filters #checkboxes #pois").is(":checked")) {
+            if (jQuery("#filters #filter-items #pois").is(":checked")) {
                 this.dataManager.poiFilterActive = true;
                 this.dataManager.trackFilterActive = false;
+                
+                // Send to analytics
+                this.sendAnalytics("Filter selected", "POI");
             }
             
-            if (jQuery("#filters #checkboxes #tracks").is(":checked")) {
+            if (jQuery("#filters #filter-items #tracks").is(":checked")) {
                 this.dataManager.poiFilterActive = false;
                 this.dataManager.trackFilterActive = true;
+                
+                // Send to analytics
+                this.sendAnalytics("Filter selected", "Tracks");
             }
             
-            if (jQuery("#filters #checkboxes #pois-and-tracks").is(":checked")) {
+            if (jQuery("#filters #filter-items #pois-and-tracks").is(":checked")) {
                 this.dataManager.poiFilterActive = true;
                 this.dataManager.trackFilterActive = true;
+                
+                // Send to analytics
+                this.sendAnalytics("Filter selected", "POI + Tracks");
             }
             
             var data = this.dataManager.search();
             this.sendMessage("showData", data);
+        },
+        
+        onShowAllData: function () {
+            // Reset selected filter
+            jQuery("#filters #filter-items #pois-and-tracks").prop('checked', true);
+            
+            // Reset filters in DataManager
+            this.dataManager.poiFilterActive = true;
+            this.dataManager.trackFilterActive = true;
+            
+            this.sendMessage("changeState", {state: TRACKS.App.States.DEFAULT});
+            this.sendMessage("emptySearch");
+            this.sendMessage("showData", this.dataManager.search());
+
+            // Send to analytics
+            this.sendAnalytics("Show all data", "Show all data");
         },
         
         /*

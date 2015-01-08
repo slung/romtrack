@@ -20,9 +20,6 @@
 			},
             "#list #search": {
                 click: "onOpenSearch"
-            },
-            "#list #all-data": {
-                click: "onShowAllData"
             }
 		},
 		
@@ -37,6 +34,7 @@
             if (this.sendAnalytics) {
                 TRACKS.bind(this.sendAnalytics, this);
             }
+            
             if (this.onReady) {
                 TRACKS.bind(this.onReady, this);
             }
@@ -48,6 +46,7 @@
             this.onMessage("closeList", this.onCloseList);
             this.onMessage("selectDataItemInList", this.onSelectDataItem);
             this.onMessage("stateChanged", this.onStateChanged);
+            this.onMessage("emptySearch", this.onEmptySearch);
 		},
 		
 		render: function()
@@ -213,25 +212,9 @@
             this.close();
         },
         
-        onShowAllData: function () {
-            // Reset selected track index
+        onEmptySearch: function () {
             this.selectedDataIndex = -1;
-            
-            this.sendMessage("changeState", {state: TRACKS.App.States.DEFAULT});
-            this.sendMessage("emptySearch");
-            
-            if (this.dataManager.poiFilterActive && this.dataManager.trackFilterActive) {
-                this.sendMessage("showData", this.dataManager.pois.concat(this.dataManager.tracks));
-            } else if (this.dataManager.trackFilterActive) {
-                this.sendMessage("showData", this.dataManager.tracks);
-            } else if (this.dataManager.poiFilterActive) {
-                this.sendMessage("showData", this.dataManager.pois);
-            }
-            
-            // Send to analytics
-            this.sendAnalytics("Show all data", "Show all data");
         }
-		
 	});
 	
 	// Publish
