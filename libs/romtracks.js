@@ -1565,6 +1565,9 @@
 			},
             "#list #search": {
                 click: "onOpenSearch"
+            },
+            "#list #all-data": {
+                click: "onShowAllData"
             }
 		},
 		
@@ -1632,7 +1635,7 @@
             
             // Expand/contract preview image
             if (jQuery("#list #dataitem-" + index + " #data-parameters").css("display") === "none") {
-                jQuery("#list #dataitem-" + index + " #preview").css("width", "90px");
+                jQuery("#list #dataitem-" + index + " #preview").css("width", "80px");
                 jQuery("#list #dataitem-" + index + " #preview").css("height", "auto");
             } else {
                 jQuery("#list #dataitem-" + index + " #preview").css("width", "60px");
@@ -1759,7 +1762,23 @@
         
         onEmptySearch: function () {
             this.selectedDataIndex = -1;
-        }
+        },
+        
+        onShowAllData: function () {
+            // Reset selected filter
+            jQuery("#filters #filter-items #pois-and-tracks").prop('checked', true);
+
+            // Reset filters in DataManager
+            this.dataManager.poiFilterActive = true;
+            this.dataManager.trackFilterActive = true;
+
+            this.sendMessage("changeState", {state: TRACKS.App.States.DEFAULT});
+            this.sendMessage("emptySearch");
+            this.sendMessage("showData", this.dataManager.search());
+
+            // Send to analytics
+            this.sendAnalytics("Show all data", "Show all data");
+        },
 	});
 	
 	// Publish

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 	<head>
 		<title>Tracks</title>
@@ -52,6 +52,14 @@
 		<!-- Script -->
 		<script>
 	
+            //Load browser specific CSS
+            if (jQuery.browser.version.indexOf("11") !== -1) {
+                TRACKS.loadCssFile("style/ie11-fixes.css");
+            }
+            else if (jQuery.browser.mozilla == true) {
+                TRACKS.loadCssFile("style/mozilla-fixes.css");
+            }
+            
 			(function( $j )
 			{
                 google.load("visualization", "1", {packages:["corechart"]});
@@ -252,7 +260,7 @@
             <div class="infoWindow yui3-g">
                 <img class="yui3-u" src={{data.preview}} width="50px" height="50px"/>
                 <div id="details" class="yui3-u">
-                    <div id="name" style="text-align: center; line-height: 50px;">{{data.name}}</div>
+                    <div id="name" {{^fullDetails}}style="text-align: center; line-height: 50px;"{{/fullDetails}}>{{data.name}}</div>
                     {{#fullDetails}}
                         {{#data.article}}<div id="article"><a href={{data.article}} target="_blank">Citește articolul</a></div>{{/data.article}}
                     {{/fullDetails}}
@@ -293,7 +301,7 @@
             <img id="filter-toggle" src="assets/images/filter.png" />
             <div id="filter-items" class="yui3-g">
                 <div class="yui3-u">
-                    <img id="all-data" width="11px" title="Arată toate locurile ți traseele" src="assets/images/refresh.png" />
+                    <img id="all-data" width="11px" title="Arată toate locurile și traseele" src="assets/images/refresh.png" />
                 </div>
                 <div class="filter-item yui3-u">
                     <input id="pois" name="geographic-data" type="radio">
@@ -320,7 +328,7 @@
             {{#message}}
                 <div id="message">{{message}}</div>
                 <div id="actions">
-                    <span id="search" class="link">Căutați în altă locație</span> sau <span id="all-data" class="link">vedeți toate datele.</span>
+                    <span id="search" class="link">Căutați în altă locație</span> sau <span id="all-data" class="link">vedeți toate locurile și traseele.</span>
                 </div>
             {{/message}}
 		</script>

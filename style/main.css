@@ -212,8 +212,8 @@ body {
 }
 
 .infoWindow #details {
-    margin-left: 15px;
-    width: 165px;
+    margin-left: 10px;
+    width: 175px;
     font-style: italic;
 }
 
@@ -248,7 +248,7 @@ body {
     left: -330px;
     
     width: 310px;
-    height: 350px;
+    height: 330px;
     
     background-color: #FFFFFF;
     padding: 10px;
@@ -280,20 +280,6 @@ body {
     position: relative;
 }
 
-#list #header {
-    font-size: 11px;
-    padding: 5px 0;
-}
-
-#list #header #all-data {
-    margin-right: 20px;
-}
-
-#list #header #all-data:hover {
-    cursor: pointer;
-    opacity: 0.8;
-}
-
 #list #data {
     
     height: 330px;
@@ -306,7 +292,7 @@ body {
 
 #list #list-toggle {
     position: absolute;
-    top: 160px;
+    top: 145px;
     left: 330px;
     
     padding: 3px 3px 3px 7px;
