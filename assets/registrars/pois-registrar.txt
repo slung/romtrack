@@ -1,5 +1,11 @@
 [
     {
+        "name": "Sighetu Marmației",
+        "latitude": "47.926880",
+        "longitude": "23.891042",
+        "article": "http://www.amazingromania.net/2015/01/sighetu-marmatiei-locul-unde-ideea-nu.html",
+        "preview": "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Previews/sighetu-marmatiei.jpg"
+    },{
         "name": "Biserica Fortificată Biertan",
         "latitude": "46.135337",
         "longitude": "24.521421",
