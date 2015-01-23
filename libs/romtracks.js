@@ -109,8 +109,8 @@
         trackFilterActive: true,
         rowCount: 20,
         cluster: null,
-        tracksRegistrar: "assets/registrars/tracks-registrar.txt",
-        poisRegistrar: "assets/registrars/pois-registrar.txt",
+        tracksRegistrar: "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Registrars/tracks-registrar.txt",
+        poisRegistrar: "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Registrars/pois-registrar.txt",
         pois: [],
         tracks: [],
         dataIndex: 0,
@@ -2089,6 +2089,7 @@
 			this.language = cfg.language;
 			this.addViews( cfg.views || [] );
 			this.appReady = cfg.appReady;
+            this.googleApiKey = "AIzaSyBR8BAjYqkuL8i1Qzu1SJvaZYuL932NCAg";
 			
 			// Register message
 			this.register();
