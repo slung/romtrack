@@ -15,6 +15,7 @@
 			this.language = cfg.language;
 			this.addViews( cfg.views || [] );
 			this.appReady = cfg.appReady;
+            this.googleApiKey = "AIzaSyBR8BAjYqkuL8i1Qzu1SJvaZYuL932NCAg";
 			
 			// Register message
 			this.register();

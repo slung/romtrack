@@ -1,5 +1,15 @@
 [
     {
+        "name": "Izvorul Muntelui - vf. Toaca",
+        "url": "https://dl.dropboxusercontent.com/u/106013585/Amazing%20Romania/Tracks/ceahlau-izvorul-muntelui-varful-toaca.gpx",
+        "article": "http://www.amazingromania.net/2015/01/ceahlau-varful-toaca-flori-de-colt-si.html",
+        "preview": "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Previews/ceahlau-toaca.jpg"
+    },{
+        "name": "Cabana Dochia - Izvorul Muntelui",
+        "url": "https://dl.dropboxusercontent.com/u/106013585/Amazing%20Romania/Tracks/ceahlau-cabana-dochia-claile-lui-miron-izvorul-muntelui.gpx",
+        "article": "http://www.amazingromania.net/2015/01/ceahlau-varful-toaca-flori-de-colt-si.html",
+        "preview": "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Previews/ceahlau-detunatele.jpg"
+    },{
         "name": "Cascadele Șipotului",
         "url": "https://dl.dropboxusercontent.com/u/106013585/Amazing%20Romania/Tracks/cascadele-sipotului.gpx",
         "article": "http://www.amazingromania.net/2014/09/cascadele-sipotului-minunatia_22.html",
