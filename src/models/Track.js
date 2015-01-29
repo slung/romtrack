@@ -1,13 +1,13 @@
 (function( TRACKS )
 {
-    var Track = function (name, url, article, preview, points, elevationPoints, index, color, startMarkerUrl, endMarkerUrl) {
+    var Track = function (id, name, url, article, preview, points, elevationPoints, color, startMarkerUrl, endMarkerUrl) {
+        this.id = id;
         this.name = name;
         this.url = url;
         this.article = article;
         this.preview = preview;
         this.points = points;
         this.elevationPoints = elevationPoints || [];
-        this.index = index;
         this.color = color || "#D95642";
         this.startMarkerUrl = startMarkerUrl || "assets/images/marker.png";
         this.endMarkerUrl = endMarkerUrl || "assets/images/end-marker.png";

@@ -9,7 +9,6 @@
 		},
 		
 		init: function( cfg ) {
-			
 			// Call super
 			this._parent( cfg );
             
@@ -35,7 +34,7 @@
                 width: 700,
                 height: 140,
                 hAxis: {title: this.xAxisName,  titleTextStyle: {color: '#333'}},
-                vAxis: {title: this.yAxisName, minValue: 0, titleTextStyle: {color: '#333'}},
+                vAxis: {title: this.yAxisName, minValue: elevationData.minElevation, titleTextStyle: {color: '#333'}},
                 legend: 'none'
             };
 
@@ -45,19 +44,33 @@
             google.visualization.events.addListener(this.elevationProfileChart, 'onmouseover', TRACKS.bind(this.onElevationProfileOver, this));
             google.visualization.events.addListener(this.elevationProfileChart, 'onmouseout', TRACKS.bind(this.onElevationProfileOut, this));
             
+            if (this.app.state === TRACKS.App.States.SHARE) {
+                this.app.showView(this);
+            }
+            
             this.open();
 		},
         
         generateElevationProfileData: function (track) {
-            var elevationProfileData = new google.visualization.DataTable();
+            var elevationProfileData = new google.visualization.DataTable(),
+                minElevation = parseInt(track.elevationPoints[0]),
+                elevation = null;
             
             //Push header
             elevationProfileData.addColumn('number', this.xAxisName);
             elevationProfileData.addColumn('number', this.yAxisName);
             
             for (var i = 0; i < track.elevationPoints.length; i++) {
-                elevationProfileData.addRow([track.getDistanceFromStart(i), parseInt(track.elevationPoints[i])]);
+                elevation = parseInt(track.elevationPoints[i]);
+                elevationProfileData.addRow([track.getDistanceFromStart(i), elevation]);
+                
+                // Find min elevation to use as Y axis min value
+                if (elevation < minElevation) {
+                    minElevation = elevation;
+                }
             }
+            
+            elevationProfileData.minElevation = minElevation;
             
             return elevationProfileData;
         },

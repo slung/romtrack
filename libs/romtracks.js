@@ -113,7 +113,6 @@
         poisRegistrar: "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Registrars/pois-registrar.txt",
         pois: [],
         tracks: [],
-        dataIndex: 0,
 
         // stores loaded tables
         tables: [],
@@ -310,9 +309,8 @@
 
                     // Loop through POIs and save them
                     for (var i = 0; i < pois.length; i++) {
-                        var poi = new TRACKS.POI(pois[i].name, pois[i].latitude, pois[i].longitude, pois[i].article, pois[i].preview, this.dataIndex);
+                        var poi = new TRACKS.POI(pois[i].id, pois[i].name, pois[i].latitude, pois[i].longitude, pois[i].article, pois[i].preview);
                         this.pois.push(poi);
-                        this.dataIndex++;
                         
                         if (i === pois.length-1) {
                             TRACKS.dispatcher.fire("poisLoaded");
@@ -337,22 +335,21 @@
                     this.exepectedNbOfTracks = parsedData.length;
                     
                     for (var i = 0; i < parsedData.length; i++) {
-                        this.extractTrackData(parsedData[i], this.dataIndex);
-                        this.dataIndex++;
+                        this.extractTrackData(parsedData[i]);
                     }
                 }, this)
             });
         },
 
-        getDataByIndex: function (index) {
+        getDataById: function (id) {
             for (var i = 0; i < this.tracks.length; i++) {
-                if (this.tracks[i].index == index) {
+                if (this.tracks[i].id === id) {
                     return this.tracks[i];
                 }
             }
             
             for (var i = 0; i < this.pois.length; i++) {
-                if (this.pois[i].index == index) {
+                if (this.pois[i].id === id) {
                     return this.pois[i];
                 }
             }
@@ -360,7 +357,7 @@
             return null;
         },
 
-        extractTrackData: function (parsedData, trackIndex) {
+        extractTrackData: function (parsedData) {
             jQuery.ajax({
                 url: parsedData.url,
                 type: 'GET',
@@ -368,13 +365,13 @@
                 crossDomain: true,
                 success: TRACKS.bind(function(gpxData){
                     var trackData = this.trackPointsFromGPX(gpxData);
-                    this.saveTrack(parsedData.name, parsedData.url, parsedData.article, parsedData.preview, trackData.trackPoints, trackData.elevationPoints, trackIndex);
+                    this.saveTrack(parsedData.id, parsedData.name, parsedData.url, parsedData.article, parsedData.preview, trackData.trackPoints, trackData.elevationPoints);
                 }, this)
             });
         },
         
-        saveTrack: function(name, url, article, preview, trackPoints, elevationPoints, trackIndex) {
-            var track = new TRACKS.Track(name, url, article, preview,  trackPoints, elevationPoints, trackIndex);
+        saveTrack: function(id, name, url, article, preview, trackPoints, elevationPoints) {
+            var track = new TRACKS.Track(id, name, url, article, preview,  trackPoints, elevationPoints);
             this.tracks.push(track);
             
             if (this.tracks.length === this.exepectedNbOfTracks) {
@@ -480,14 +477,14 @@
 
 (function( TRACKS )
 {
-    var Track = function (name, url, article, preview, points, elevationPoints, index, color, startMarkerUrl, endMarkerUrl) {
+    var Track = function (id, name, url, article, preview, points, elevationPoints, color, startMarkerUrl, endMarkerUrl) {
+        this.id = id;
         this.name = name;
         this.url = url;
         this.article = article;
         this.preview = preview;
         this.points = points;
         this.elevationPoints = elevationPoints || [];
-        this.index = index;
         this.color = color || "#D95642";
         this.startMarkerUrl = startMarkerUrl || "assets/images/marker.png";
         this.endMarkerUrl = endMarkerUrl || "assets/images/end-marker.png";
@@ -591,7 +588,8 @@
 
 (function( TRACKS )
  {
-    var POI = function (name, latitude, longitude, article, preview, index, markerUrl) {
+    var POI = function (id, name, latitude, longitude, article, preview, index, markerUrl) {
+        this.id = id;
         this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;
@@ -822,7 +820,15 @@
                 lat: 46.08371401022221,
                 lon: 23.73289867187499
             };
+            
+            // External functions
             this.sendAnalytics = cfg.sendAnalytics;
+            this.mapReady = cfg.mapReady;
+
+            // External function context binders
+            if (this.mapReady) {
+                TRACKS.bind(this.mapReady, this);
+            }
             
             if (this.sendAnalytics) {
                 TRACKS.bind(this.sendAnalytics, this);
@@ -871,6 +877,10 @@
 				
                 this.dataManager.getDataFromDataSource();
 				this.sendMessage("mapReady");
+                
+                if (this.mapReady) {
+                    this.mapReady.call( this, []);
+                }
 				
 				google.maps.event.removeListener(listener);
 			}, this));
@@ -961,7 +971,9 @@
                     data[i].endMarker = endMarker;
                 }
                 
-                this.addMarkerListeners(startMarker);
+                if (this.app.state !== TRACKS.App.States.SHARE) {
+                    this.addMarkerListeners(startMarker);
+                }
                 this.markers.push(startMarker);
                 
                 if (endMarker) {
@@ -993,7 +1005,7 @@
                 if (this.app.state == TRACKS.App.States.INFO) {
                     return;
                 }
-                
+
                 this.onMarkerOver(marker);
             }, this));
 
@@ -1001,7 +1013,7 @@
                 if (this.app.state == TRACKS.App.States.INFO) {
                     return;
                 }
-                
+
                 this.removeTooltip();
             }, this));
         },
@@ -1014,15 +1026,20 @@
             this.removeTooltip();
             this.deselectData(this.lastData);
             
-            if (this.lastData && this.lastData.index == data.index) {
+            if (this.lastData && this.lastData.id == data.id) {
                 this.lastData = null;
                 return;
             }
             
+            TRACKS.setUrlHash(data.id);
             TRACKS.mask(TRACKS.MASK_ELEMENT);
             
             // Save data
             this.lastData = data;
+            
+            if (this.app.state === TRACKS.App.States.SHARE) {
+                this.addData([data]);
+            }
             
             // Show tooltip
             this.showTooltip(data.startMarker, true);
@@ -1041,7 +1058,9 @@
                 this.sendMessage("hideElevationProfile", data);
             }
             
-            this.sendMessage("changeState", {state: TRACKS.App.States.INFO});
+            if (this.app.state !== TRACKS.App.States.SHARE) {
+                this.sendMessage("changeState", {state: TRACKS.App.States.INFO});
+            }
             
             TRACKS.unmask(TRACKS.MASK_ELEMENT);
         },
@@ -1050,6 +1069,8 @@
             if (!data) {
                 return;
             }
+            
+            TRACKS.setUrlHash("");
             
             // Remove end track marker
             if (this.lastData.endMarker) {
@@ -1062,7 +1083,7 @@
         showTooltip: function (marker, fullDetails) {
             var content = null,
                 offset = null,
-                closeBoxURL = fullDetails ? "../../assets/images/close.png" : "";
+                closeBoxURL = (fullDetails && this.app.state !== TRACKS.App.States.SHARE) ? "../../assets/images/close.png" : "";
             
             this.removeTooltip();
 
@@ -1072,7 +1093,7 @@
                     fullDetails: fullDetails
                 });
                 
-                offset = fullDetails ? new google.maps.Size(-136, -155) : new google.maps.Size(-136, -125);
+                offset = fullDetails ? new google.maps.Size(-136, -145) : new google.maps.Size(-136, -125);
             } else {
                 content = this.mustache(this.templates.poiTooltipTemplate, {
                     data: marker.data,
@@ -1547,7 +1568,7 @@
 {
 	var ListView = TRACKS.View.extend({
 		
-        selectedDataIndex: -1,
+        selectedDataId: -1,
         
 		events: {
 			"#list #list-toggle": {
@@ -1628,21 +1649,21 @@
             }
         },
         
-        toggleDataDetails: function (index) {
-            if (index === -1) {
+        toggleDataDetails: function (id) {
+            if (id === -1) {
                 return;
             }
             
             // Expand/contract preview image
-            if (jQuery("#list #dataitem-" + index + " #data-parameters").css("display") === "none") {
-                jQuery("#list #dataitem-" + index + " #preview").css("width", "80px");
-                jQuery("#list #dataitem-" + index + " #preview").css("height", "auto");
+            if (jQuery("#list #" + id + " #data-parameters").css("display") === "none") {
+                jQuery("#list #" + id + " #preview").css("width", "80px");
+                jQuery("#list #" + id + " #preview").css("height", "auto");
             } else {
-                jQuery("#list #dataitem-" + index + " #preview").css("width", "60px");
-                jQuery("#list #dataitem-" + index + " #preview").css("height", "30px");
+                jQuery("#list #" + id + " #preview").css("width", "60px");
+                jQuery("#list #" + id + " #preview").css("height", "30px");
             }
             
-            jQuery("#list #dataitem-" + index + " #data-parameters").toggle("fast");
+            jQuery("#list #" + id + " #data-parameters").toggle("fast");
         },
         
         open: function () {
@@ -1669,31 +1690,35 @@
             }
         },
         
-        selectDataItem: function (index) {
-            if (index !== this.selectedDataIndex) {
+        selectDataItem: function (id) {
+            if (id !== this.selectedDataId) {
             
+                TRACKS.setUrlHash(id);
+                
                 // Deselect previous track first
-                this.toggleDataDetails(this.selectedDataIndex);
+                this.toggleDataDetails(this.selectedDataId);
 
                 // Show track details
-                this.toggleDataDetails(index);
+                this.toggleDataDetails(id);
 
-                // Save track index
-                this.selectedDataIndex = index;
+                // Save track id
+                this.selectedDataId = id;
                 
                 // Scroll to track
-                jQuery("#list #data").mCustomScrollbar("scrollTo", "#dataitem-" + index);
+                jQuery("#list #data").mCustomScrollbar("scrollTo", "#" + id);
                 
-                var track = this.dataManager.getDataByIndex(index);
+                var track = this.dataManager.getDataById(id);
                 
                 // Send to analytics
                 this.sendAnalytics("Track Selected", "Name: " + track.name + " | URL: " + track.url);
             } else {
-                // Deselect track
-                this.toggleDataDetails(index);
+                TRACKS.setUrlHash("");
                 
-                // Reset selected track index
-                this.selectedDataIndex = -1;
+                // Deselect track
+                this.toggleDataDetails(id);
+                
+                // Reset selected track id
+                this.selectedDataId = -1;
             }
         },
 		
@@ -1705,17 +1730,17 @@
         },
         
         onDataItemClick: function (evt) {
-            var index = parseInt(evt.currentTarget.id.split('-')[1]),
-                track = this.dataManager.getDataByIndex(index);
+            var id = evt.currentTarget.id,
+                track = this.dataManager.getDataById(id);
             
-            this.selectDataItem(index);
+            this.selectDataItem(id);
             
             this.sendMessage("selectDataItemOnMap", track);
         },
         
         onDataItemHover: function (evt) {
-            var index = parseInt(evt.currentTarget.id.split('-')[1]),
-                dataItem = this.dataManager.getDataByIndex(index);
+            var id = evt.currentTarget.id,
+                dataItem = this.dataManager.getDataById(id);
             
             if (this.app.views[1].map.getZoom() < 9) {
                 this.sendMessage("showDataItemTooltip", dataItem);
@@ -1738,7 +1763,7 @@
                 return;
             }
             
-            this.selectDataItem(track.index);
+            this.selectDataItem(track.id);
         },
         
         onCloseList: function () {
@@ -1761,10 +1786,13 @@
         },
         
         onEmptySearch: function () {
-            this.selectedDataIndex = -1;
+            TRACKS.setUrlHash("");
+            this.selectedDataId = -1;
         },
         
         onShowAllData: function () {
+            TRACKS.setUrlHash("");
+            
             // Reset selected filter
             jQuery("#filters #filter-items #pois-and-tracks").prop('checked', true);
 
@@ -1797,7 +1825,6 @@
 		},
 		
 		init: function( cfg ) {
-			
 			// Call super
 			this._parent( cfg );
             
@@ -1823,7 +1850,7 @@
                 width: 700,
                 height: 140,
                 hAxis: {title: this.xAxisName,  titleTextStyle: {color: '#333'}},
-                vAxis: {title: this.yAxisName, minValue: 0, titleTextStyle: {color: '#333'}},
+                vAxis: {title: this.yAxisName, minValue: elevationData.minElevation, titleTextStyle: {color: '#333'}},
                 legend: 'none'
             };
 
@@ -1833,19 +1860,33 @@
             google.visualization.events.addListener(this.elevationProfileChart, 'onmouseover', TRACKS.bind(this.onElevationProfileOver, this));
             google.visualization.events.addListener(this.elevationProfileChart, 'onmouseout', TRACKS.bind(this.onElevationProfileOut, this));
             
+            if (this.app.state === TRACKS.App.States.SHARE) {
+                this.app.showView(this);
+            }
+            
             this.open();
 		},
         
         generateElevationProfileData: function (track) {
-            var elevationProfileData = new google.visualization.DataTable();
+            var elevationProfileData = new google.visualization.DataTable(),
+                minElevation = parseInt(track.elevationPoints[0]),
+                elevation = null;
             
             //Push header
             elevationProfileData.addColumn('number', this.xAxisName);
             elevationProfileData.addColumn('number', this.yAxisName);
             
             for (var i = 0; i < track.elevationPoints.length; i++) {
-                elevationProfileData.addRow([track.getDistanceFromStart(i), parseInt(track.elevationPoints[i])]);
+                elevation = parseInt(track.elevationPoints[i]);
+                elevationProfileData.addRow([track.getDistanceFromStart(i), elevation]);
+                
+                // Find min elevation to use as Y axis min value
+                if (elevation < minElevation) {
+                    minElevation = elevation;
+                }
             }
+            
+            elevationProfileData.minElevation = minElevation;
             
             return elevationProfileData;
         },
@@ -2214,6 +2255,7 @@
     TRACKS.App.States.DEFAULT = 'default';
 	TRACKS.App.States.SEARCH = 'search';
 	TRACKS.App.States.INFO = 'trackinfo';
+    TRACKS.App.States.SHARE = 'share';
 	
 }(TRACKS));
 

@@ -1,6 +1,7 @@
 (function( TRACKS )
  {
-    var POI = function (name, latitude, longitude, article, preview, index, markerUrl) {
+    var POI = function (id, name, latitude, longitude, article, preview, index, markerUrl) {
+        this.id = id;
         this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;

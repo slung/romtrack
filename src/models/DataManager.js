@@ -14,7 +14,6 @@
         poisRegistrar: "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Registrars/pois-registrar.txt",
         pois: [],
         tracks: [],
-        dataIndex: 0,
 
         // stores loaded tables
         tables: [],
@@ -211,9 +210,8 @@
 
                     // Loop through POIs and save them
                     for (var i = 0; i < pois.length; i++) {
-                        var poi = new TRACKS.POI(pois[i].name, pois[i].latitude, pois[i].longitude, pois[i].article, pois[i].preview, this.dataIndex);
+                        var poi = new TRACKS.POI(pois[i].id, pois[i].name, pois[i].latitude, pois[i].longitude, pois[i].article, pois[i].preview);
                         this.pois.push(poi);
-                        this.dataIndex++;
                         
                         if (i === pois.length-1) {
                             TRACKS.dispatcher.fire("poisLoaded");
@@ -238,22 +236,21 @@
                     this.exepectedNbOfTracks = parsedData.length;
                     
                     for (var i = 0; i < parsedData.length; i++) {
-                        this.extractTrackData(parsedData[i], this.dataIndex);
-                        this.dataIndex++;
+                        this.extractTrackData(parsedData[i]);
                     }
                 }, this)
             });
         },
 
-        getDataByIndex: function (index) {
+        getDataById: function (id) {
             for (var i = 0; i < this.tracks.length; i++) {
-                if (this.tracks[i].index == index) {
+                if (this.tracks[i].id === id) {
                     return this.tracks[i];
                 }
             }
             
             for (var i = 0; i < this.pois.length; i++) {
-                if (this.pois[i].index == index) {
+                if (this.pois[i].id === id) {
                     return this.pois[i];
                 }
             }
@@ -261,7 +258,7 @@
             return null;
         },
 
-        extractTrackData: function (parsedData, trackIndex) {
+        extractTrackData: function (parsedData) {
             jQuery.ajax({
                 url: parsedData.url,
                 type: 'GET',
@@ -269,13 +266,13 @@
                 crossDomain: true,
                 success: TRACKS.bind(function(gpxData){
                     var trackData = this.trackPointsFromGPX(gpxData);
-                    this.saveTrack(parsedData.name, parsedData.url, parsedData.article, parsedData.preview, trackData.trackPoints, trackData.elevationPoints, trackIndex);
+                    this.saveTrack(parsedData.id, parsedData.name, parsedData.url, parsedData.article, parsedData.preview, trackData.trackPoints, trackData.elevationPoints);
                 }, this)
             });
         },
         
-        saveTrack: function(name, url, article, preview, trackPoints, elevationPoints, trackIndex) {
-            var track = new TRACKS.Track(name, url, article, preview,  trackPoints, elevationPoints, trackIndex);
+        saveTrack: function(id, name, url, article, preview, trackPoints, elevationPoints) {
+            var track = new TRACKS.Track(id, name, url, article, preview,  trackPoints, elevationPoints);
             this.tracks.push(track);
             
             if (this.tracks.length === this.exepectedNbOfTracks) {

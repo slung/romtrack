@@ -47,7 +47,15 @@
                 lat: 46.08371401022221,
                 lon: 23.73289867187499
             };
+            
+            // External functions
             this.sendAnalytics = cfg.sendAnalytics;
+            this.mapReady = cfg.mapReady;
+
+            // External function context binders
+            if (this.mapReady) {
+                TRACKS.bind(this.mapReady, this);
+            }
             
             if (this.sendAnalytics) {
                 TRACKS.bind(this.sendAnalytics, this);
@@ -96,6 +104,10 @@
 				
                 this.dataManager.getDataFromDataSource();
 				this.sendMessage("mapReady");
+                
+                if (this.mapReady) {
+                    this.mapReady.call( this, []);
+                }
 				
 				google.maps.event.removeListener(listener);
 			}, this));
@@ -186,7 +198,9 @@
                     data[i].endMarker = endMarker;
                 }
                 
-                this.addMarkerListeners(startMarker);
+                if (this.app.state !== TRACKS.App.States.SHARE) {
+                    this.addMarkerListeners(startMarker);
+                }
                 this.markers.push(startMarker);
                 
                 if (endMarker) {
@@ -218,7 +232,7 @@
                 if (this.app.state == TRACKS.App.States.INFO) {
                     return;
                 }
-                
+
                 this.onMarkerOver(marker);
             }, this));
 
@@ -226,7 +240,7 @@
                 if (this.app.state == TRACKS.App.States.INFO) {
                     return;
                 }
-                
+
                 this.removeTooltip();
             }, this));
         },
@@ -239,15 +253,20 @@
             this.removeTooltip();
             this.deselectData(this.lastData);
             
-            if (this.lastData && this.lastData.index == data.index) {
+            if (this.lastData && this.lastData.id == data.id) {
                 this.lastData = null;
                 return;
             }
             
+            TRACKS.setUrlHash(data.id);
             TRACKS.mask(TRACKS.MASK_ELEMENT);
             
             // Save data
             this.lastData = data;
+            
+            if (this.app.state === TRACKS.App.States.SHARE) {
+                this.addData([data]);
+            }
             
             // Show tooltip
             this.showTooltip(data.startMarker, true);
@@ -266,7 +285,9 @@
                 this.sendMessage("hideElevationProfile", data);
             }
             
-            this.sendMessage("changeState", {state: TRACKS.App.States.INFO});
+            if (this.app.state !== TRACKS.App.States.SHARE) {
+                this.sendMessage("changeState", {state: TRACKS.App.States.INFO});
+            }
             
             TRACKS.unmask(TRACKS.MASK_ELEMENT);
         },
@@ -275,6 +296,8 @@
             if (!data) {
                 return;
             }
+            
+            TRACKS.setUrlHash("");
             
             // Remove end track marker
             if (this.lastData.endMarker) {
@@ -287,7 +310,7 @@
         showTooltip: function (marker, fullDetails) {
             var content = null,
                 offset = null,
-                closeBoxURL = fullDetails ? "../../assets/images/close.png" : "";
+                closeBoxURL = (fullDetails && this.app.state !== TRACKS.App.States.SHARE) ? "../../assets/images/close.png" : "";
             
             this.removeTooltip();
 
@@ -297,7 +320,7 @@
                     fullDetails: fullDetails
                 });
                 
-                offset = fullDetails ? new google.maps.Size(-136, -155) : new google.maps.Size(-136, -125);
+                offset = fullDetails ? new google.maps.Size(-136, -145) : new google.maps.Size(-136, -125);
             } else {
                 content = this.mustache(this.templates.poiTooltipTemplate, {
                     data: marker.data,
