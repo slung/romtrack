@@ -2,7 +2,7 @@
 {
 	var ListView = TRACKS.View.extend({
 		
-        selectedDataIndex: -1,
+        selectedDataId: -1,
         
 		events: {
 			"#list #list-toggle": {
@@ -83,21 +83,21 @@
             }
         },
         
-        toggleDataDetails: function (index) {
-            if (index === -1) {
+        toggleDataDetails: function (id) {
+            if (id === -1) {
                 return;
             }
             
             // Expand/contract preview image
-            if (jQuery("#list #dataitem-" + index + " #data-parameters").css("display") === "none") {
-                jQuery("#list #dataitem-" + index + " #preview").css("width", "80px");
-                jQuery("#list #dataitem-" + index + " #preview").css("height", "auto");
+            if (jQuery("#list #" + id + " #data-parameters").css("display") === "none") {
+                jQuery("#list #" + id + " #preview").css("width", "80px");
+                jQuery("#list #" + id + " #preview").css("height", "auto");
             } else {
-                jQuery("#list #dataitem-" + index + " #preview").css("width", "60px");
-                jQuery("#list #dataitem-" + index + " #preview").css("height", "30px");
+                jQuery("#list #" + id + " #preview").css("width", "60px");
+                jQuery("#list #" + id + " #preview").css("height", "30px");
             }
             
-            jQuery("#list #dataitem-" + index + " #data-parameters").toggle("fast");
+            jQuery("#list #" + id + " #data-parameters").toggle("fast");
         },
         
         open: function () {
@@ -124,31 +124,35 @@
             }
         },
         
-        selectDataItem: function (index) {
-            if (index !== this.selectedDataIndex) {
+        selectDataItem: function (id) {
+            if (id !== this.selectedDataId) {
             
+                TRACKS.setUrlHash(id);
+                
                 // Deselect previous track first
-                this.toggleDataDetails(this.selectedDataIndex);
+                this.toggleDataDetails(this.selectedDataId);
 
                 // Show track details
-                this.toggleDataDetails(index);
+                this.toggleDataDetails(id);
 
-                // Save track index
-                this.selectedDataIndex = index;
+                // Save track id
+                this.selectedDataId = id;
                 
                 // Scroll to track
-                jQuery("#list #data").mCustomScrollbar("scrollTo", "#dataitem-" + index);
+                jQuery("#list #data").mCustomScrollbar("scrollTo", "#" + id);
                 
-                var track = this.dataManager.getDataByIndex(index);
+                var track = this.dataManager.getDataById(id);
                 
                 // Send to analytics
                 this.sendAnalytics("Track Selected", "Name: " + track.name + " | URL: " + track.url);
             } else {
-                // Deselect track
-                this.toggleDataDetails(index);
+                TRACKS.setUrlHash("");
                 
-                // Reset selected track index
-                this.selectedDataIndex = -1;
+                // Deselect track
+                this.toggleDataDetails(id);
+                
+                // Reset selected track id
+                this.selectedDataId = -1;
             }
         },
 		
@@ -160,17 +164,17 @@
         },
         
         onDataItemClick: function (evt) {
-            var index = parseInt(evt.currentTarget.id.split('-')[1]),
-                track = this.dataManager.getDataByIndex(index);
+            var id = evt.currentTarget.id,
+                track = this.dataManager.getDataById(id);
             
-            this.selectDataItem(index);
+            this.selectDataItem(id);
             
             this.sendMessage("selectDataItemOnMap", track);
         },
         
         onDataItemHover: function (evt) {
-            var index = parseInt(evt.currentTarget.id.split('-')[1]),
-                dataItem = this.dataManager.getDataByIndex(index);
+            var id = evt.currentTarget.id,
+                dataItem = this.dataManager.getDataById(id);
             
             if (this.app.views[1].map.getZoom() < 9) {
                 this.sendMessage("showDataItemTooltip", dataItem);
@@ -193,7 +197,7 @@
                 return;
             }
             
-            this.selectDataItem(track.index);
+            this.selectDataItem(track.id);
         },
         
         onCloseList: function () {
@@ -216,10 +220,13 @@
         },
         
         onEmptySearch: function () {
-            this.selectedDataIndex = -1;
+            TRACKS.setUrlHash("");
+            this.selectedDataId = -1;
         },
         
         onShowAllData: function () {
+            TRACKS.setUrlHash("");
+            
             // Reset selected filter
             jQuery("#filters #filter-items #pois-and-tracks").prop('checked', true);
 

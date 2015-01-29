@@ -160,150 +160,6 @@ TRACKS.queryStringParameter = function( name ) {
     return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
 };
 
-/*
- * Share Store locator related data via Facebook, Twitter and Email
- * 
- * shareTarget: POINT or ITINERARY
- */
-TRACKS.share = function( shareTarget, shareEngine, options ){
-	
-	options = options || {};
-	var url = "";
-	
-	var language = "";
-	
-	if (TRACKS.Settings.language)
-		language = "&LANGUAGE=" + TRACKS.Settings.language;
-	
-	switch ( shareTarget.toLowerCase() )
-	{
-		case 'point':
-		{
-			options.sharedField = options.sharedField || "id";
-			options.sharedValue = options.sharedValue || options.point.pointId;
-			
-			url = TRACKS.Settings.shareUrl + 
-				  "mapurl.html?key=" + TRACKS.Settings.key +
-				  language + 
-				  "&customer=" + TRACKS.Settings.customer +
-				  "&tableName=" + TRACKS.Settings.tableName;
-				  
-			url = encodeURIComponent( url + "&" + options.sharedField + "=" + options.sharedValue );
-			
-			break;
-		}
-		
-		case 'itinerary':
-		{
-			var itineraryParameters = "&startAddress=" + options.itinerary.startAddress +
-									  "&endAddress=" + options.itinerary.endAddress +
-									  "&endAddressString=" + options.itinerary.endAddressString +
-									  "&travelMode=" + options.itinerary.travelMode;
-									  
-			url = TRACKS.Settings.shareUrl + 
-				  "itineraryurl.html?key=" + TRACKS.Settings.key +
-				  language + 
-				  "&customer=" + TRACKS.Settings.customer;
-				  
-			url = encodeURIComponent( url + itineraryParameters );
-			
-			break;
-		}
-	}
-	
-
-	
-	switch (shareEngine.toLowerCase())
-	{
-		case 'facebook':
-		{
-			url = decodeURIComponent( url );
-			url = encodeURI( url );  
-			
-			this.dataManager = TRACKS.DataManager.getInstance();
-			
-			this.dataManager.shortenUrl( url, function( data ){
-				
-				var windowWidth = "660";
-				var windowHeight = "280";
-			    var centerWidth = (window.screen.width - windowWidth) / 2;
-	    		var centerHeight = (window.screen.height - windowHeight) / 2;
-				
-				window.open(
-					"http://www.facebook.com/sharer/sharer.php?u=" + data.id + "&t=test",
-					null,
-					"resizable=0,width=" + windowWidth + 
-					",height=" + windowHeight +
-					",left=" + centerWidth + 
-					",top=" + centerHeight
-				);
-			} );
-			
-			break;
-		}
-		
-		case 'twitter':
-		{
-			url = decodeURIComponent( url );
-			url = encodeURI( url );  
-			
-			this.dataManager = TRACKS.DataManager.getInstance();
-			
-			this.dataManager.shortenUrl( url, function( data ){
-				
-				var windowWidth = "660";
-				var windowHeight = "280";
-			    var centerWidth = (window.screen.width - windowWidth) / 2;
-	    		var centerHeight = (window.screen.height - windowHeight) / 2;
-				
-				window.open(
-					'https://twitter.com/share?url=' + data.id, 
-					null, 
-					"resizable=yes,width=" + windowWidth + 
-					",height=" + windowHeight +
-					",left=" + centerWidth + 
-					",top=" + centerHeight
-				);
-			} );
-			
-			break;
-		}
-		
-		case 'mail':
-		{
-			options.mail = options.mail || {};
-			
-			var windowWidth = options.mail.windowWidth || "355";
-			var windowHeight = options.mail.windowHeight || "320";
-		    var centerWidth = (window.screen.width - windowWidth) / 2;
-    		var centerHeight = (window.screen.height - windowHeight) / 2;
-			
-			var language = "";
-			
-			if (TRACKS.Settings.language)
-				language = "&LANGUAGE=" + TRACKS.Settings.language;
-			
-			var emailUrl = 	'email.html?target=' + shareTarget + 
-							language +
-							'&url=' + url +
-							'&name=' + options.mail.name + 
-							'&address=' + options.mail.address +
-							'&zip=' + options.mail.zip + 
-							'&city=' + options.mail.city
-			
-			window.open(emailUrl, 
-						null, 
-						"resizable=0,width=" + windowWidth + 
-						",height=" + windowHeight +
-						",left=" + centerWidth + 
-						",top=" + centerHeight
-			);
-			
-			break;
-		}
-	}
-};
-
 TRACKS.scrollTop = function( container, parent, elementToScrollTo, offset )
 {
 	jQuery(parent).scrollTop(0);
@@ -353,6 +209,29 @@ TRACKS.stringToBoolean = function(string){
      }
      
      return string;
+};
+
+/*
+ * Sets the hash in the URL
+ * @param content - array of values to be put in the URL hash
+ * @param separator - used for separating the values in the 'content' array
+ */
+TRACKS.setUrlHash = function (content) {
+    if (!content || content.length == 0) {
+        window.location.hash = '';
+        return;
+    }
+
+    window.location.hash = content;
+};
+
+/*
+ * Gets the hash present in the URL in the form
+ * of an array separated by the given or default separator
+ * @param separator - separator if multiple values present in the URL hash
+ */
+TRACKS.getUrlHash = function () {
+    return window.location.hash;
 };
 
 TRACKS.NumberFormat = function( nStr, thousandSeparator, decimals, decimalSeparator )

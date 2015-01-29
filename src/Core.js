@@ -140,5 +140,6 @@
     TRACKS.App.States.DEFAULT = 'default';
 	TRACKS.App.States.SEARCH = 'search';
 	TRACKS.App.States.INFO = 'trackinfo';
+    TRACKS.App.States.SHARE = 'share';
 	
 }(TRACKS));

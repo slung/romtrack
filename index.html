@@ -35,8 +35,13 @@
 	    
 	    <script type="text/javascript" src="libs/jquery-1.7.2.min.js"></script>
 	    <script type="text/javascript" src="libs/js.class.js"></script>
+<<<<<<< HEAD
 		<script type="text/javascript" src="libs/romtracks.jquery-min.js"></script>
 		<script type="text/javascript" src="libs/romtracks-min.js"></script>
+=======
+		<script type="text/javascript" src="libs/romtracks.jquery.js"></script>
+		<script type="text/javascript" src="libs/romtracks.js"></script>
+>>>>>>> origin/develop
 		<script type="text/javascript" src="libs/mustache.js"></script>
 		<script type="text/javascript" src="libs/jsonp.js"></script>
 		<script type="text/javascript" src="libs/romtracks.helpers-min.js"></script>
@@ -68,7 +73,7 @@
                     
 					/** App **/
 					var app = new TRACKS.App({
-						state: TRACKS.App.States.SEARCH,
+                        state: (TRACKS.getUrlHash() && TRACKS.getUrlHash().length > 1) ? TRACKS.App.States.SHARE : TRACKS.App.States.SEARCH,
 						views: [
 							/*
 							 * Search View
@@ -77,7 +82,7 @@
                                 searchRadius: 40,
                                 countryCode: "ro",
 								container: TRACKS.one("#search"),
-								hideOnStates: [],
+                                hideOnStates: [TRACKS.App.States.SHARE],
 								templates: {
 									main: $j.trim( TRACKS.one("#search-tpl").innerHTML ),
                                     suggestions: $j.trim( TRACKS.one("#suggestions-tpl").innerHTML )
@@ -108,7 +113,7 @@
                                     }
                                     
                                     ga('send', 'event', 'Map', action, label);
-                                }	
+                                }
 							}),
                             /*
 							 * List View
@@ -116,7 +121,7 @@
 							new TRACKS.ListView({
 								container: TRACKS.one("#list"),
 								renderContainer: TRACKS.one("#list #container"),
-								hideOnStates: [],
+                                hideOnStates: [TRACKS.App.States.SHARE],
                                 noTracksMsg: "Din păcate nu am găsit nimic în jurul locației căutate :(",
 								templates: {
                                     main: $j.trim( TRACKS.one("#list-tpl").innerHTML ),
@@ -141,7 +146,7 @@
 							new TRACKS.ElevationProfileView({
 								container: TRACKS.one("#elevation-profile"),
 								renderContainer: TRACKS.one("#elevation-profile #container"),
-								hideOnStates: [TRACKS.App.States.DEFAULT, TRACKS.App.States.SEARCH],
+                                hideOnStates: [TRACKS.App.States.DEFAULT, TRACKS.App.States.SEARCH, TRACKS.App.States.SHARE],
                                 xAxisName: "Distanță (km)",
                                 yAxisName: "Altitudine (m)",
 								templates: {
@@ -154,7 +159,7 @@
                             new TRACKS.FiltersView({
                                 container: TRACKS.one("#filters"),
                                 renderContainer: TRACKS.one("#filters #container"),
-                                hideOnStates: [],
+                                hideOnStates: [TRACKS.App.States.SHARE],
                                 templates: {
                                     main: $j.trim( TRACKS.one("#filters-tpl").innerHTML )
                                 },
@@ -168,31 +173,63 @@
                             })
 						],
                         appReady: function () {
+                            
+                            
+                            TRACKS.mask(TRACKS.MASK_ELEMENT);
                             TRACKS.poisLoaded = false;
                             TRACKS.tracksLoaded = false;
-                            
+
                             TRACKS.dispatcher.onMessage("poisLoaded", function () {
                                 TRACKS.poisLoaded = true;
-                                
+
                                 if (TRACKS.tracksLoaded) {
-                                    //GeolocateUser
-                                    TRACKS.DataManager.getInstance().geolocateUser();
+                                    if (app.state === TRACKS.App.States.SHARE) {
+                                        var hashUrl = TRACKS.getUrlHash();
+
+                                        if (hashUrl && hashUrl.length > 0) {
+                                            TRACKS.mask(TRACKS.MASK_ELEMENT);
+
+                                            var id = hashUrl.substring(1, hashUrl.length);
+                                            var track = TRACKS.DataManager.getInstance().getDataById(id);
+
+                                            this.sendMessage("selectDataItemOnMap", track);
+
+                                            TRACKS.unmask(TRACKS.MASK_ELEMENT);
+                                        }
+                                    } else {
+                                        //GeolocateUser
+                                        TRACKS.DataManager.getInstance().geolocateUser();
+                                    }
                                 }
                             });
-                            
+
                             TRACKS.dispatcher.onMessage("tracksLoaded", function () {
                                 TRACKS.tracksLoaded = true;
 
                                 if (TRACKS.poisLoaded) {
-                                    //GeolocateUser
-                                    TRACKS.DataManager.getInstance().geolocateUser();
+                                    if (app.state === TRACKS.App.States.SHARE) {
+                                        var hashUrl = TRACKS.getUrlHash();
+
+                                        if (hashUrl && hashUrl.length > 0) {
+                                            TRACKS.mask(TRACKS.MASK_ELEMENT);
+
+                                            var id = hashUrl.substring(1, hashUrl.length);
+                                            var track = TRACKS.DataManager.getInstance().getDataById(id);
+
+                                            this.sendMessage("selectDataItemOnMap", track);
+
+                                            TRACKS.unmask(TRACKS.MASK_ELEMENT);
+                                        }
+                                    } else {
+                                        //GeolocateUser
+                                        TRACKS.DataManager.getInstance().geolocateUser();
+                                    }
                                 }
                             });
-                        }
+                    }
 					});
 	
 					app.start();
-		            TRACKS.mask(TRACKS.MASK_ELEMENT);
 				});
 				
 			})(jQuery.noConflict());
@@ -274,7 +311,7 @@
             <img id="list-toggle" src="assets/images/list.png" width="30px"/>
             <div id="data">
                 {{#data}}
-                    <div id="dataitem-{{index}}" class="yui3-g data">
+                    <div id="{{id}}" class="yui3-g data">
                         <div class="yui3-u">
                             <img src={{startMarkerUrl}} height="30px"/>
                         </div>
