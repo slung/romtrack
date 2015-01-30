@@ -971,9 +971,7 @@
                     data[i].endMarker = endMarker;
                 }
                 
-                if (this.app.state !== TRACKS.App.States.SHARE) {
-                    this.addMarkerListeners(startMarker);
-                }
+                this.addMarkerListeners(startMarker);
                 this.markers.push(startMarker);
                 
                 if (endMarker) {
@@ -1002,7 +1000,7 @@
              }, this));
 
             google.maps.event.addListener(marker, 'mouseover', TRACKS.bind(function (evt) {
-                if (this.app.state == TRACKS.App.States.INFO) {
+                if (this.app.state == TRACKS.App.States.INFO || this.app.state == TRACKS.App.States.SHARE) {
                     return;
                 }
 
@@ -1010,7 +1008,7 @@
             }, this));
 
             google.maps.event.addListener(marker, 'mouseout', TRACKS.bind(function (evt) {
-                if (this.app.state == TRACKS.App.States.INFO) {
+                if (this.app.state == TRACKS.App.States.INFO || this.app.state == TRACKS.App.States.SHARE) {
                     return;
                 }
 
@@ -1023,12 +1021,18 @@
                 return;
             }
             
-            this.removeTooltip();
             this.deselectData(this.lastData);
             
             if (this.lastData && this.lastData.id == data.id) {
-                this.lastData = null;
-                return;
+                if (this.app.state === TRACKS.App.States.SHARE && this.tooltip) {
+                    this.removeTooltip();
+                    this.lastData = null;
+                    return;
+                } else if (this.app.state !== TRACKS.App.States.SHARE) {
+                    this.removeTooltip();
+                    this.lastData = null;
+                    return;
+                }
             }
             
             TRACKS.setUrlHash(data.id);
@@ -1083,7 +1087,7 @@
         showTooltip: function (marker, fullDetails) {
             var content = null,
                 offset = null,
-                closeBoxURL = (fullDetails && this.app.state !== TRACKS.App.States.SHARE) ? "../../assets/images/close.png" : "";
+                closeBoxURL = fullDetails ? "../../assets/images/close.png" : "";
             
             this.removeTooltip();
 
@@ -1109,6 +1113,10 @@
                 closeBoxMargin: "5px 5px 0px 0px",
                 pixelOffset: offset
             });
+            
+            google.maps.event.addListener(this.tooltip, "closeclick", TRACKS.bind(function () {
+                this.tooltip = null;
+            }, this));
 
             this.tooltip.open(this.map, marker);
         },
@@ -1116,6 +1124,7 @@
         removeTooltip: function () {
             if (this.tooltip) {
                 this.tooltip.close();
+                this.tooltip = null;
             }
         },
         
@@ -1271,10 +1280,17 @@
 		/*
 		 * Events
 		 */
-        
          onMarkerClick: function (marker) {
-             this.selectDataItem(marker.data);
-             this.sendMessage("selectDataItemInList", marker.data);
+             if (this.app.state === TRACKS.App.States.SHARE) {
+                 if (this.tooltip) {
+                     this.removeTooltip();
+                 } else {
+                    this.showTooltip(marker.data.startMarker, true);
+                 }
+             } else {
+                 this.selectDataItem(marker.data);
+                 this.sendMessage("selectDataItemInList", marker.data);
+             }
              
              // Send to analytics
             this.sendAnalytics("Marker clicked", "Name: " + marker.data.name + " | URL: " + marker.data.url);
