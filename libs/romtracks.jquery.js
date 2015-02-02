@@ -218,11 +218,11 @@ TRACKS.stringToBoolean = function(string){
  */
 TRACKS.setUrlHash = function (content) {
     if (!content || content.length == 0) {
-        window.location.hash = '';
+        window.top.location.hash = '';
         return;
     }
 
-    window.location.hash = content;
+    window.top.location.hash = content;
 };
 
 /*
@@ -231,7 +231,7 @@ TRACKS.setUrlHash = function (content) {
  * @param separator - separator if multiple values present in the URL hash
  */
 TRACKS.getUrlHash = function () {
-    return window.location.hash;
+    return window.top.location.hash;
 };
 
 TRACKS.NumberFormat = function( nStr, thousandSeparator, decimals, decimalSeparator )
