@@ -234,7 +234,8 @@ TRACKS.setUrlHash = function (content) {
  * @param separator - separator if multiple values present in the URL hash
  */
 TRACKS.getUrlHash = function () {
-    return window.top.location.hash;
+    //return window.top.location.hash;
+    return "";
 };
 
 TRACKS.NumberFormat = function( nStr, thousandSeparator, decimals, decimalSeparator )
