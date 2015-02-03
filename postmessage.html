@@ -6,10 +6,14 @@
             $.receiveMessage(function(e) {
                 window.location.hash = e.data;
             }, 'http://127.0.0.1:8989');
+            
+            $(document).ready(function() {
+                $('#iframe').attr('src', 'index.html' + window.location.hash);
+            })
         </script>
         
     </head>
     <body>
-        <iframe src="index.html" width="800px" height="800px"></iframe>
+        <iframe id="iframe" src="index.html" width="800px" height="800px"></iframe>
     </body>
 </html>
