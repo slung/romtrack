@@ -223,6 +223,9 @@ TRACKS.setUrlHash = function (content) {
     }
 
     window.location.hash = content;
+    
+    // Set for other listeners (like iFrame parents)
+    jQuery.postMessage(content, 'http://127.0.0.1:8989/postmessage.html', parent);
 };
 
 /*
@@ -231,7 +234,7 @@ TRACKS.setUrlHash = function (content) {
  * @param separator - separator if multiple values present in the URL hash
  */
 TRACKS.getUrlHash = function () {
-    return window.location.hash;
+    return window.top.location.hash;
 };
 
 TRACKS.NumberFormat = function( nStr, thousandSeparator, decimals, decimalSeparator )

@@ -1,0 +1,15 @@
+<html>
+    <head>
+        <script type="text/javascript" src="libs/jquery-1.7.2.min.js"></script>
+        <script type="text/javascript" src="libs/jquery.ba-postmessage.min.js"></script>
+        <script>
+            $.receiveMessage(function(e) {
+                window.location.hash = e.data;
+            }, 'http://127.0.0.1:8989');
+        </script>
+        
+    </head>
+    <body>
+        <iframe src="index.html" width="800px" height="800px"></iframe>
+    </body>
+</html>
