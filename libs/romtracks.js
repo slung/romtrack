@@ -107,10 +107,11 @@
         tableName: '',
         poiFilterActive: true,
         trackFilterActive: true,
+        privateMode: false,
         rowCount: 20,
         cluster: null,
-        tracksRegistrar: "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Registrars/tracks-registrar.txt",
-        poisRegistrar: "https://dl.dropboxusercontent.com/u/106013585/amazing%20romania/Registrars/pois-registrar.txt",
+        googleApiKey: "AIzaSyBR8BAjYqkuL8i1Qzu1SJvaZYuL932NCAg",
+        fusionTableId: "1cr4YhI1ZpenusSDOGh20HH0RSbHFT7G5LDH-r94O",
         pois: [],
         tracks: [],
 
@@ -251,13 +252,13 @@
                 );
             }
         },
-        
+
         search: function (location, searchRadius) {
             var dataInBounds = null;
-            
+
             this.location = location ? location : this.location;
             this.searchRadius = searchRadius ? searchRadius : this.searchRadius;
-            
+
             if (!this.location) {
                 if (this.poiFilterActive && this.trackFilterActive) {
                     return this.pois.concat(this.tracks);
@@ -270,22 +271,22 @@
                 if (this.poiFilterActive && this.trackFilterActive) {
                     dataInBounds = TRACKS.GeoOperations.getInstance().getDataInBounds(this.tracks, this.location, this.searchRadius);
                     dataInBounds.concat(TRACKS.GeoOperations.getInstance().getDataInBounds(this.pois, this.location, this.searchRadius));
-                    
+
                     return dataInBounds;
                 } else if (this.trackFilterActive) {
                     dataInBounds = TRACKS.GeoOperations.getInstance().getDataInBounds(this.tracks, this.location, this.searchRadius);
-                    
+
                     return dataInBounds;
                 } else if (this.poiFilterActive) {
                     dataInBounds = TRACKS.GeoOperations.getInstance().getDataInBounds(this.pois, this.location, this.searchRadius);
-                    
+
                     return dataInBounds;
                 }
             }
-            
+
             return null;
         },
-        
+
         getDataFromDataSource: function () {
             if (this.poiFilterActive && this.trackFilterActive) {
                 this.getPoisFromDataSource();
@@ -296,23 +297,47 @@
                 this.getPoisFromDataSource();
             }
         },
-        
+
         getPoisFromDataSource: function () {
+            var url = "https://www.googleapis.com/fusiontables/v2/query";
+            
             this.pois = [];
 
+            // Add API authorization key
+            url += "?key=" + this.googleApiKey;
+            
+            // Add SQL statement
+            url += "&sql=" + this.buildSelectStatement();
+            url += this.buildWhereClause([{
+                column: "type",
+                operator: "=",
+                value: "'poi'",
+                connective: "AND"
+            }, {
+                column: "private",
+                operator: (this.privateMode === true) ? "=" : "NOT EQUAL TO",
+                value: "'true'"
+            }]);
+            
             jQuery.ajax({
-                url: this.poisRegistrar,
+                url: url,
                 type: 'GET',
                 crossDomain: true,
                 success: TRACKS.bind(function(data){
-                    var pois = TRACKS.JSON.parse(data);
-
+                    var rows = data.rows;
+                    
+                    if (!rows || rows.length === 0) {
+                        TRACKS.dispatcher.fire("poisLoaded");
+                        return;
+                    }
+                    
                     // Loop through POIs and save them
-                    for (var i = 0; i < pois.length; i++) {
-                        var poi = new TRACKS.POI(pois[i].id, pois[i].name, pois[i].latitude, pois[i].longitude, pois[i].article, pois[i].preview);
+                    for (var i = 0; i < rows.length; i++) {
+                        var row = rows[i];
+                        var poi = new TRACKS.POI(row[0], row[1], row[6], row[7], row[2], row[3]);
                         this.pois.push(poi);
-                        
-                        if (i === pois.length-1) {
+
+                        if (i === rows.length-1) {
                             TRACKS.dispatcher.fire("poisLoaded");
                         }
                     }
@@ -321,21 +346,43 @@
         },
 
         // Assume only GPX format tracks
-        getTracksFromDataSource: function (success, error)
-        {
+        getTracksFromDataSource: function (success, error) {
+            var url = "https://www.googleapis.com/fusiontables/v2/query";
+
             this.tracks = [];
 
+            // Add API authorization key
+            url += "?key=" + this.googleApiKey;
+
+            // Add SQL statement
+            url += "&sql=" + this.buildSelectStatement();
+            url += this.buildWhereClause([{
+                column: "type",
+                operator: "=",
+                value: "'track'",
+                connective: "AND"
+            }, {
+                column: "private",
+                operator: (this.privateMode === true) ? "=" : "NOT EQUAL TO",
+                value: "'true'"
+            }]);
+            
             jQuery.ajax({
-                url: this.tracksRegistrar,
+                url: url,
                 type: 'GET',
                 crossDomain: true,
                 success: TRACKS.bind(function(data){
-                    var parsedData = TRACKS.JSON.parse(data);
+                    var rows = data.rows;
 
-                    this.exepectedNbOfTracks = parsedData.length;
+                    if (!rows || rows.length === 0) {
+                        TRACKS.dispatcher.fire("tracksLoaded");
+                        return;
+                    }
                     
-                    for (var i = 0; i < parsedData.length; i++) {
-                        this.extractTrackData(parsedData[i]);
+                    this.expectedNbOfTracks = data.rows.length;
+                    
+                    for (var i = 0; i < rows.length; i++) {
+                        this.extractTrackData(rows[i]);
                     }
                 }, this)
             });
@@ -347,7 +394,7 @@
                     return this.tracks[i];
                 }
             }
-            
+
             for (var i = 0; i < this.pois.length; i++) {
                 if (this.pois[i].id === id) {
                     return this.pois[i];
@@ -357,24 +404,24 @@
             return null;
         },
 
-        extractTrackData: function (parsedData) {
+        extractTrackData: function (trackInfo) {
             jQuery.ajax({
-                url: parsedData.url,
+                url: trackInfo[5],
                 type: 'GET',
                 dataType: "xml",
                 crossDomain: true,
                 success: TRACKS.bind(function(gpxData){
                     var trackData = this.trackPointsFromGPX(gpxData);
-                    this.saveTrack(parsedData.id, parsedData.name, parsedData.url, parsedData.article, parsedData.preview, trackData.trackPoints, trackData.elevationPoints);
+                    this.saveTrack(trackInfo[0], trackInfo[1], trackInfo[5], trackInfo[2], trackInfo[3], trackData.trackPoints, trackData.elevationPoints);
                 }, this)
             });
         },
-        
+
         saveTrack: function(id, name, url, article, preview, trackPoints, elevationPoints) {
             var track = new TRACKS.Track(id, name, url, article, preview,  trackPoints, elevationPoints);
             this.tracks.push(track);
-            
-            if (this.tracks.length === this.exepectedNbOfTracks) {
+
+            if (this.tracks.length === this.expectedNbOfTracks) {
                 TRACKS.dispatcher.fire("tracksLoaded");
             }
         },
@@ -405,6 +452,31 @@
             });
 
             return {trackPoints: trackPoints, elevationPoints: elevationPoints};
+        },
+        
+        buildSelectStatement: function () {
+            return "SELECT * FROM "  + this.fusionTableId;
+        },
+        
+        /*
+         * Options is an object array an deach object has the following properties: column, operator, value, connective
+         */
+        buildWhereClause: function (options) {
+            var i = 0,
+                connective = null,
+                whereClause = " WHERE ";
+            
+            if (!options || options.length === 0) {
+                return;
+            }
+            
+            // Parse all object keys and add key-value pair to where clause
+            for (i = 0; i < options.length; i++) {
+                connective = options[i].connective ? " " + options[i].connective + " " : "";
+                whereClause += options[i].column + " " + options[i].operator + " " + options[i].value + connective;
+            }
+            
+            return whereClause;
         }
 
     });
@@ -2146,7 +2218,6 @@
 			this.language = cfg.language;
 			this.addViews( cfg.views || [] );
 			this.appReady = cfg.appReady;
-            this.googleApiKey = "AIzaSyBR8BAjYqkuL8i1Qzu1SJvaZYuL932NCAg";
 			
 			// Register message
 			this.register();

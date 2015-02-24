@@ -11,6 +11,23 @@
 		<concatsource destfile="${component.builddir}/${component.basefilename}.js" sourcedir="${component.jsfiles.base}" sourcefiles="${component.jsfiles}" />
 	</target>
 
+    <target name="minify-romtracks-launcher" description="Create component-min.js from component.js">
+        <yuicompress src="${component.builddir}/romtracks.launcher.js" dest="${component.builddir}/romtracks.launcher-min.js" args="${yuicompressor.js.args.internal}" />
+        <if>
+            <available file="${component.builddir}/lang" type="dir" />
+            <then>
+                <for param="file">
+                    <path>
+                        <fileset dir="${component.builddir}/lang" includes="*.js"/>
+                    </path>
+                    <sequential>
+                        <yuicompress src="@{file}" dest="@{file}" args="${yuicompressor.js.args.internal}" />
+                    </sequential>
+                </for>
+            </then>
+        </if>
+    </target>
+    
 	<target name="minify-romtracks" description="Create component-min.js from component.js">
         <yuicompress src="${component.builddir}/${component.basefilename}.js" dest="${component.builddir}/${component.basefilename}-min.js" args="${yuicompressor.js.args.internal}" />
     	<if>
