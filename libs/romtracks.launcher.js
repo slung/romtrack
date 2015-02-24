@@ -1,11 +1,3 @@
-//Load browser specific CSS
-if (jQuery.browser.version.indexOf("11") !== -1) {
-    TRACKS.loadCssFile("style/ie11-fixes.css");
-}
-else if (jQuery.browser.mozilla == true) {
-    TRACKS.loadCssFile("style/mozilla-fixes.css");
-}
-
 (function( $j )
  {
     google.load("visualization", "1", {packages:["corechart"]});

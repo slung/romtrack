@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 	<head>
 		<title>Tracks</title>
@@ -48,6 +48,15 @@
         <script type="text/javascript" src="libs/jquery.loadmask.js"></script>
         <script type="text/javascript" src="libs/jquery.ba-postmessage.min.js"></script>
 	    
+        <script type="text/javascript">
+            //Load browser specific CSS
+            if (jQuery.browser.version.indexOf("11") !== -1) {
+                TRACKS.loadCssFile("style/ie11-fixes.css");
+            }
+            else if (jQuery.browser.mozilla == true) {
+                TRACKS.loadCssFile("style/mozilla-fixes.css");
+            }
+        </script>
 		<!-- Font -->
 	    <link href='http://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>	
 		
