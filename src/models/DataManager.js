@@ -235,7 +235,9 @@
                     // Loop through POIs and save them
                     for (var i = 0; i < rows.length; i++) {
                         var row = rows[i];
-                        var poi = new TRACKS.POI(row[0], row[1], row[6], row[7], row[2], row[3]);
+                        var poiName = (this.app.language == "en") ? row[2] : row[1];
+                        var poiArticle = (this.app.language == "en") ? row[4] : row[3];
+                        var poi = new TRACKS.POI(row[0], poiName, row[8], row[9], poiArticle, row[5]);
                         this.pois.push(poi);
 
                         if (i === rows.length-1) {
@@ -307,19 +309,21 @@
 
         extractTrackData: function (trackInfo) {
             jQuery.ajax({
-                url: trackInfo[5],
+                url: trackInfo[7],
                 type: 'GET',
                 dataType: "xml",
                 crossDomain: true,
                 success: TRACKS.bind(function(gpxData){
                     var trackData = this.trackPointsFromGPX(gpxData);
-                    this.saveTrack(trackInfo[0], trackInfo[1], trackInfo[5], trackInfo[2], trackInfo[3], trackData.trackPoints, trackData.elevationPoints);
+                    var trackName = (this.app.language == "en") ? trackInfo[2] : trackInfo[1];
+                    var trackArticle = (this.app.language == "en") ? trackInfo[4] : trackInfo[3];
+                    this.saveTrack(trackInfo[0], trackName, trackInfo[7], trackArticle, trackInfo[5], trackData.trackPoints, trackData.elevationPoints);
                 }, this)
             });
         },
 
         saveTrack: function(id, name, url, article, preview, trackPoints, elevationPoints) {
-            var track = new TRACKS.Track(id, name, url, article, preview,  trackPoints, elevationPoints);
+            var track = new TRACKS.Track(id, name, url, article, preview, trackPoints, elevationPoints);
             this.tracks.push(track);
 
             if (this.tracks.length === this.expectedNbOfTracks) {

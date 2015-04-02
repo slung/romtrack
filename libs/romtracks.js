@@ -67,6 +67,55 @@
 	
 }(TRACKS));
 
+(function( TRACKS )
+ {
+    // Singleton instance
+    var languageManager = null;
+
+    var LanguageManager = TRACKS.EventManager.extend({
+
+        dir: "languages",
+        extension: ".js",
+
+        init: function( cfg ) 
+        {
+            if( languageManager )
+                throw new Error('You can only create one instance of LanguageManager!');
+
+            this._parent();
+        },
+
+        loadLanguage: function( language, success )
+        {
+            var url = this.dir + "/" + language + this.extension;
+
+            JSONP.get( url, {}, TRACKS.bind( function( data ) {
+
+                this.dictionary = data;
+
+                if( success )
+                    success.call(this, [data]);
+
+            }, this));
+
+            return;
+        }
+    });
+
+
+    LanguageManager.getInstance = function()
+    {
+        if( languageManager )
+            return languageManager;
+
+        languageManager = new LanguageManager();
+        return languageManager;
+    };
+    // Publish
+    TRACKS.LanguageManager = LanguageManager;
+
+}(TRACKS));
+
 (function(TRACKS)
 {
 	var MsgManager = TRACKS.EventManager.extend({
@@ -334,7 +383,9 @@
                     // Loop through POIs and save them
                     for (var i = 0; i < rows.length; i++) {
                         var row = rows[i];
-                        var poi = new TRACKS.POI(row[0], row[1], row[6], row[7], row[2], row[3]);
+                        var poiName = (this.app.language == "en") ? row[2] : row[1];
+                        var poiArticle = (this.app.language == "en") ? row[4] : row[3];
+                        var poi = new TRACKS.POI(row[0], poiName, row[8], row[9], poiArticle, row[5]);
                         this.pois.push(poi);
 
                         if (i === rows.length-1) {
@@ -406,19 +457,21 @@
 
         extractTrackData: function (trackInfo) {
             jQuery.ajax({
-                url: trackInfo[5],
+                url: trackInfo[7],
                 type: 'GET',
                 dataType: "xml",
                 crossDomain: true,
                 success: TRACKS.bind(function(gpxData){
                     var trackData = this.trackPointsFromGPX(gpxData);
-                    this.saveTrack(trackInfo[0], trackInfo[1], trackInfo[5], trackInfo[2], trackInfo[3], trackData.trackPoints, trackData.elevationPoints);
+                    var trackName = (this.app.language == "en") ? trackInfo[2] : trackInfo[1];
+                    var trackArticle = (this.app.language == "en") ? trackInfo[4] : trackInfo[3];
+                    this.saveTrack(trackInfo[0], trackName, trackInfo[7], trackArticle, trackInfo[5], trackData.trackPoints, trackData.elevationPoints);
                 }, this)
             });
         },
 
         saveTrack: function(id, name, url, article, preview, trackPoints, elevationPoints) {
-            var track = new TRACKS.Track(id, name, url, article, preview,  trackPoints, elevationPoints);
+            var track = new TRACKS.Track(id, name, url, article, preview, trackPoints, elevationPoints);
             this.tracks.push(track);
 
             if (this.tracks.length === this.expectedNbOfTracks) {
@@ -1166,14 +1219,16 @@
             if (marker.data instanceof TRACKS.Track) {
                 content = this.mustache(this.templates.trackTooltipTemplate, {
                     data: marker.data,
-                    fullDetails: fullDetails
+                    fullDetails: fullDetails,
+                    language: this.getDictionary()
                 });
                 
                 offset = fullDetails ? new google.maps.Size(-136, -145) : new google.maps.Size(-136, -125);
             } else {
                 content = this.mustache(this.templates.poiTooltipTemplate, {
                     data: marker.data,
-                    fullDetails: fullDetails
+                    fullDetails: fullDetails,
+                    language: this.getDictionary()
                 });
                 
                 offset = new google.maps.Size(-136, -120);
@@ -1431,7 +1486,9 @@
 		
 		render: function()
 		{
-			this.container.innerHTML = this.mustache(this.templates.main, {});
+			this.container.innerHTML = this.mustache(this.templates.main, {
+                language: this.getDictionary()
+            });
 			this.toggle();
 			return this;
 		},
@@ -1509,6 +1566,7 @@
             
             suggestionsContainer.innerHTML = this.mustache( this.templates.suggestions, { 
 				suggestions: suggestions,
+                language: this.getDictionary()
 			});
 			
             // Make suggestions visible
@@ -1710,11 +1768,13 @@
 		{
             if (!this.data || this.data.length == 0) {
                 this.container.innerHTML = this.mustache(this.templates.empty, {
-                    message: this.noTracksMsg
+                    message: this.noTracksMsg,
+                    language: this.getDictionary()
                 });
             } else {
                 this.container.innerHTML = this.mustache(this.templates.main, {
-                    data: this.data
+                    data: this.data,
+                    language: this.getDictionary()
                 });
             }
             
@@ -2096,7 +2156,7 @@
         render: function () {
 
             this.container.innerHTML = this.mustache(this.templates.main, {
-                
+                language: this.getDictionary()
             });
 
             return this;
@@ -2214,6 +2274,7 @@
 			this._parent();
 			
 			// Store state & add views
+            this.language = cfg.language;
 			this.state = cfg.state;
 			this.language = cfg.language;
 			this.addViews( cfg.views || [] );

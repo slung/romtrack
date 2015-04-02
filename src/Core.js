@@ -11,6 +11,7 @@
 			this._parent();
 			
 			// Store state & add views
+            this.language = cfg.language;
 			this.state = cfg.state;
 			this.language = cfg.language;
 			this.addViews( cfg.views || [] );

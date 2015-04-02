@@ -321,14 +321,16 @@
             if (marker.data instanceof TRACKS.Track) {
                 content = this.mustache(this.templates.trackTooltipTemplate, {
                     data: marker.data,
-                    fullDetails: fullDetails
+                    fullDetails: fullDetails,
+                    language: this.getDictionary()
                 });
                 
                 offset = fullDetails ? new google.maps.Size(-136, -145) : new google.maps.Size(-136, -125);
             } else {
                 content = this.mustache(this.templates.poiTooltipTemplate, {
                     data: marker.data,
-                    fullDetails: fullDetails
+                    fullDetails: fullDetails,
+                    language: this.getDictionary()
                 });
                 
                 offset = new google.maps.Size(-136, -120);

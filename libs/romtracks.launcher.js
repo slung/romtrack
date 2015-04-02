@@ -6,6 +6,7 @@
 
         /** App **/
         var app = new TRACKS.App({
+            language: (TRACKS.queryStringParameter("language") === "en") ? "en" : "ro",
             state: (TRACKS.getUrlHash() && TRACKS.getUrlHash().length > 1) ? TRACKS.App.States.SHARE : TRACKS.App.States.SEARCH,
             views: [
                 /*

@@ -46,7 +46,9 @@
 		
 		render: function()
 		{
-			this.container.innerHTML = this.mustache(this.templates.main, {});
+			this.container.innerHTML = this.mustache(this.templates.main, {
+                language: this.getDictionary()
+            });
 			this.toggle();
 			return this;
 		},
@@ -124,6 +126,7 @@
             
             suggestionsContainer.innerHTML = this.mustache( this.templates.suggestions, { 
 				suggestions: suggestions,
+                language: this.getDictionary()
 			});
 			
             // Make suggestions visible

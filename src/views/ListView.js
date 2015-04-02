@@ -56,11 +56,13 @@
 		{
             if (!this.data || this.data.length == 0) {
                 this.container.innerHTML = this.mustache(this.templates.empty, {
-                    message: this.noTracksMsg
+                    message: this.noTracksMsg,
+                    language: this.getDictionary()
                 });
             } else {
                 this.container.innerHTML = this.mustache(this.templates.main, {
-                    data: this.data
+                    data: this.data,
+                    language: this.getDictionary()
                 });
             }
             

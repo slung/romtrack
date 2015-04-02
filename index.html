@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 	<head>
 		<title>Tracks</title>
@@ -84,7 +84,7 @@
 		<!-- Search View template -->
 		<script id="search-tpl" type="text/template">
             <img src="assets/images/red-search-icon.png" />
-			<input id="search-input" class="yui3-u" type="text" placeholder="Caută trasee în jurul unei locații..."/>
+			<input id="search-input" class="yui3-u" type="text" placeholder="{{language.searchPlaceholder}}"/>
             <div id="suggestions"></div>
 		</script>
         
@@ -106,12 +106,12 @@
                 {{/data.preview}}
                 <div id="details" class="yui3-u">
                     <div id="name">{{data.name}}</div>
-                    {{#data.length}}<div id="length"><b>Lungime:</b> {{data.length}} km</div>{{/data.length}}
-                    {{#data.ascent}}<div id="ascent"><b>Urcare:</b> {{data.ascent}} m</div>{{/data.ascent}}
-                    {{#data.descent}}<div id="descent"><b>Coborâre:</b> {{data.descent}} m</div>{{/data.descent}}
+                    {{#data.length}}<div id="length"><b>{{language.trackLength}}:</b> {{data.length}} km</div>{{/data.length}}
+                    {{#data.ascent}}<div id="ascent"><b>{{language.trackAscent}}:</b> {{data.ascent}} m</div>{{/data.ascent}}
+                    {{#data.descent}}<div id="descent"><b>{{language.trackDescent}}:</b> {{data.descent}} m</div>{{/data.descent}}
                     {{#fullDetails}}
-                        {{#data.article}}<div id="article"><a href={{data.article}} target="_blank">Citește articolul</a></div>{{/data.article}}
-                        {{#data.url}}<div id="download"><a href={{data.url}} target="_blank">Descarcă traseul (GPX)</a></div>{{/data.url}}
+                        {{#data.article}}<div id="article"><a href={{data.article}} target="_blank">{{language.readPost}}</a></div>{{/data.article}}
+                        {{#data.url}}<div id="download"><a href={{data.url}} target="_blank" download>{{language.downloadTrack}}</a></div>{{/data.url}}
                     {{/fullDetails}}
                 </div>
             </div>
@@ -125,7 +125,7 @@
                 <div id="details" class="yui3-u">
                     <div id="name" {{^fullDetails}}style="text-align: center; line-height: 50px;"{{/fullDetails}}>{{data.name}}</div>
                     {{#fullDetails}}
-                        {{#data.article}}<div id="article"><a href={{data.article}} target="_blank">Citește articolul</a></div>{{/data.article}}
+                        {{#data.article}}<div id="article"><a href={{data.article}} target="_blank">{{language.readPost}}</a></div>{{/data.article}}
                     {{/fullDetails}}
             </div>
             </div>
@@ -149,11 +149,11 @@
                         <div class="yui3-u info">
                             <div id="name">{{name}}</div>
                             <div id="data-parameters" style="display: none">
-                                {{#length}}<div id="length"><b>Lungime:</b> {{length}} km</div>{{/length}}
-                                {{#ascent}}<div id="ascent"><b>Urcare:</b> {{ascent}} m</div>{{/ascent}}
-                                {{#descent}}<div id="descent"><b>Coborâre:</b> {{descent}} m</div>{{/descent}}
-                                {{#article}}<div id="article"><a href={{article}} target="_blank">Citește articolul</a></div>{{/article}}
-                                {{#url}}<div id="download"><a href={{url}} target="_blank">Descarcă traseul (GPX)</a></div>{{/url}}
+                                {{#length}}<div id="length"><b>{{language.trackLength}}:</b> {{length}} km</div>{{/length}}
+                                {{#ascent}}<div id="ascent"><b>{{language.trackAscent}}:</b> {{ascent}} m</div>{{/ascent}}
+                                {{#descent}}<div id="descent"><b>{{language.trackDescent}}:</b> {{descent}} m</div>{{/descent}}
+                                {{#article}}<div id="article"><a href={{article}} target="_blank">{{language.readPost}}</a></div>{{/article}}
+                                {{#url}}<div id="download"><a href={{url}} target="_blank">{{language.readPost}}</a></div>{{/url}}
                             </div>
                         </div>
                     </div>
@@ -166,24 +166,24 @@
             <img id="filter-toggle" src="assets/images/filter.png" />
             <div id="filter-items" class="yui3-g">
                 <div class="yui3-u">
-                    <img id="all-data" width="11px" title="Arată toate locurile și traseele" src="assets/images/refresh.png" />
+                    <img id="all-data" width="11px" title="{{language.showAllTracksAndPois}}" src="assets/images/refresh.png" />
                 </div>
                 <div class="filter-item yui3-u">
                     <input id="pois" name="geographic-data" type="radio">
                     <label for="pois">
                         <img class="filter-marker" src="assets/images/poi-marker.png" width="11px"/>
                     </label>
-                    <label for="pois">Locuri</label>
+                    <label for="pois">{{language.places}}</label>
                 </div>
                 <div class="filter-item yui3-u">
                     <input id="tracks" name="geographic-data" type="radio">
                     <label for="tracks">
                         <img class="filter-marker" src="assets/images/marker.png" width="11px"/>
-                        <span>Trasee</span>
+                        <span>{{language.tracks}}</span>
                     </label>
                 </div>   
                 <div class="filter-item yui3-u">
-                    <input id="pois-and-tracks" name="geographic-data" type="radio" checked>Locuri & Trasee
+                    <input id="pois-and-tracks" name="geographic-data" type="radio" checked>{{language.tracksAndPlaces}}
                 </div>
             </div>
         </script>
@@ -193,7 +193,7 @@
             {{#message}}
                 <div id="message">{{message}}</div>
                 <div id="actions">
-                    <span id="search" class="link">Căutați în altă locație</span> sau <span id="all-data" class="link">vedeți toate locurile și traseele.</span>
+                    <span id="search" class="link">{{language.searchAnotherLocation}}</span> {{language.or}} <span id="all-data" class="link">{{language.showAllTracksAndPois}}.</span>
                 </div>
             {{/message}}
 		</script>

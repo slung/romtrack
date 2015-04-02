@@ -79,7 +79,7 @@
         </if>
     </target>
 
-	<target name="buildall" depends="concatenate, minify-romtracks, minify-helpers, minify-jquery">
+    <target name="buildall" depends="concatenate, minify-romtracks, minify-helpers, minify-jquery, minify-romtracks-launcher">
 	</target>
 	
 </project>
