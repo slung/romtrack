@@ -1,4 +1,4 @@
-json1({
+﻿json1({
 
     //Search
     searchPlaceholder: "Find tracks & trails around a location...",

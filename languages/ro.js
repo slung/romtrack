@@ -1,4 +1,4 @@
-json1({
+﻿json1({
 
     //Search
     searchPlaceholder: "Caută trasee și locuri în jurul unei locații...",
