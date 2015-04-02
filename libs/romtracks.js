@@ -1768,7 +1768,6 @@
 		{
             if (!this.data || this.data.length == 0) {
                 this.container.innerHTML = this.mustache(this.templates.empty, {
-                    message: this.noTracksMsg,
                     language: this.getDictionary()
                 });
             } else {

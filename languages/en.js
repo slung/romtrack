@@ -18,6 +18,7 @@
     tracksAndPlaces: "Places & Tracks",
 
     // Empty list
+    noResults: "Unfortunately we did not find anything around the location you searched :(",
     searchAnotherLocation: "Search another location",
     or: "or"
     

@@ -1,4 +1,4 @@
-﻿json1({
+json1({
 
     //Search
     searchPlaceholder: "Caută trasee și locuri în jurul unei locații...",
@@ -18,6 +18,7 @@
     tracksAndPlaces: "Locuri & Trasee",
 
     // Empty list
+    noResults: "Din păcate nu am găsit nimic în jurul locației căutate :(",
     searchAnotherLocation: "Caută altă locație",
     or: "sau"
 
