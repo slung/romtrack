@@ -111,7 +111,7 @@
                 new TRACKS.SettingsView({
                     container: TRACKS.one("#settings"),
                     renderContainer: TRACKS.one("#settings #container"),
-                    hideOnStates: [TRACKS.App.States.SHARE],
+                    hideOnStates: [],
                     templates: {
                         main: $j.trim( TRACKS.one("#settings-tpl").innerHTML )
                     },
