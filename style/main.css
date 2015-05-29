@@ -196,6 +196,61 @@ body {
     float: left;
 }
 
+/* Settings */
+#settings #settings-items {
+    width: 280px;
+    height: 39px;
+
+    position: absolute;
+    top: 155px;
+    left: -290px;
+
+    background-color: #FFFFFF;
+
+    padding: 0px 0px 0px 10px;
+    border: none;
+    outline: none;
+    z-index: 1;
+    border-radius: 0;
+}
+
+
+#settings #settings-items .settings-item {
+    font-size: 12px;
+    margin: 12px 0 0 0;
+}
+
+#settings #settings-items .settings-item label {
+    margin: 0 0 0 10px;
+}
+
+
+#settings #settings-toggle {
+    position: absolute;
+    top: 155px;
+    left: 0px;
+
+    padding: 3px 3px 4px 7px;
+    background-color: #FFF;
+    z-index: 1;
+
+    -webkit-border-top-right-radius: 5px;
+    -webkit-border-bottom-right-radius: 5px;
+    -moz-border-radius-topright: 5px;
+    -moz-border-radius-bottomright: 5px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+#settings img:hover {
+    cursor: pointer;
+    opacity: 0.95;
+}
+
+#settings input[type="checkbox"] {
+    float: left;
+}
+
 /* Tooltip */
 .infoWindow {
     width: 240px;
@@ -244,7 +299,7 @@ body {
 /* List */
 #list {
     position: absolute;
-    top: 150px;
+    top: 215px;
     left: -330px;
     
     width: 310px;

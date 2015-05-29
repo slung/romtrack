@@ -104,6 +104,24 @@
 
                         ga('send', 'event', 'Filters', action, label);
                     }
+                }),
+                /*
+                 * Settings view
+                 */
+                new TRACKS.SettingsView({
+                    container: TRACKS.one("#settings"),
+                    renderContainer: TRACKS.one("#settings #container"),
+                    hideOnStates: [TRACKS.App.States.SHARE],
+                    templates: {
+                        main: $j.trim( TRACKS.one("#settings-tpl").innerHTML )
+                    },
+                    sendAnalytics: function (action, label) {
+                        if (!action || !label) {
+                            return;
+                        }
+
+                        ga('send', 'event', 'Settings', action, label);
+                    }
                 })
             ],
             appReady: function () {
