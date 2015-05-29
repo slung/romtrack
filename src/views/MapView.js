@@ -76,12 +76,37 @@
             this.onMessage("hideElevationMarker", this.onHideElevationMarker);
             this.onMessage("panBy", this.onPanBy);
             this.onMessage("emptySearch", this.onEmptySearch);
+            this.onMessage("showTrailsLayer", this.onShowTrailsLayer);
+            this.onMessage("hideTrailsLayer", this.onHideTrailsLayer);
 		},
 		
 		render: function()
 		{
+            // Create trails map type
+            var trailsTypeOptions = {
+                getTileUrl: TRACKS.bind(function(coord, zoom) {
+                    if (zoom > 16 || zoom < 3) {
+                        return null;
+                    }
+                    
+                    var bound = Math.pow(2, zoom);
+                    
+                    return 'http://tile.waymarkedtrails.org/hiking/' + zoom + '/' + coord.x + '/' + coord.y + '.png';
+                }, this),
+                tileSize: new google.maps.Size(256, 256),
+                maxZoom: 16,
+                minZoom: 3,
+                radius: 1738000,
+                name: 'Trails',
+                isPng: true
+            };
+            
+            this.trailsMapType = new google.maps.ImageMapType(trailsTypeOptions);
+            
 			var mapOptions = {
 				zoom: this.startZoom,
+                minZoom: 3,
+                maxZoom: 16,
                 center: new google.maps.LatLng(this.startLocation.lat, this.startLocation.lon),
 				mapTypeId: google.maps.MapTypeId.HYBRID,
 				mapTypeControl: true,
@@ -98,6 +123,7 @@
 			}
 			
 			this.map = new google.maps.Map( this.renderContainer, mapOptions );
+            this.map.overlayMapTypes.push(this.trailsMapType);
 			
 			//Add MapReady listener
 			var listener = google.maps.event.addListener( this.map, 'tilesloaded', TRACKS.bind(function(evt) {
@@ -504,6 +530,14 @@
             if (this.centerMarker) {
                 this.centerMarker.setMap(null);
             }
+        },
+        
+        onShowTrailsLayer: function () {
+            this.map.overlayMapTypes.push(this.trailsMapType);
+        },
+        
+        onHideTrailsLayer: function () {
+            this.map.overlayMapTypes.pop(); 
         },
 		
 		/*

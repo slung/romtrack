@@ -68,6 +68,9 @@
             <div id="filters">
                 <div id="container"></div>
             </div>
+            <div id="settings">
+                <div id="container"></div>
+            </div>
             <div id="list">
                 <div id="container"></div>
             </div>
@@ -184,6 +187,17 @@
                 </div>   
                 <div class="filter-item yui3-u">
                     <input id="pois-and-tracks" name="geographic-data" type="radio" checked>{{language.tracksAndPlaces}}
+                </div>
+            </div>
+        </script>
+        
+        <!-- Settings template -->
+        <script id="settings-tpl" type="text/template">
+            <img id="settings-toggle" src="assets/images/settings.png" />
+            <div id="settings-items" class="yui3-g">
+                <div class="settings-item yui3-u">
+                    <input id="trails" name="geographic-data" type="checkbox" checked>
+                    <label for="pois">{{language.trailsLayer}}</label>
                 </div>
             </div>
         </script>
