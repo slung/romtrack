@@ -319,7 +319,7 @@
             } else {
                 if (this.poiFilterActive && this.trackFilterActive) {
                     dataInBounds = TRACKS.GeoOperations.getInstance().getDataInBounds(this.tracks, this.location, this.searchRadius);
-                    dataInBounds.concat(TRACKS.GeoOperations.getInstance().getDataInBounds(this.pois, this.location, this.searchRadius));
+                    dataInBounds = dataInBounds.concat(TRACKS.GeoOperations.getInstance().getDataInBounds(this.pois, this.location, this.searchRadius));
 
                     return dataInBounds;
                 } else if (this.trackFilterActive) {
