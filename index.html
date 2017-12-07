@@ -1,218 +1,242 @@
 ﻿<!DOCTYPE html>
 <html>
-	<head>
-		<title>Tracks</title>
-		
-		<!-- Icon -->
-		<link rel="icon" href="images/favicon.ico" />
-		
-		<!-- Style -->
-		<link rel="stylesheet" type="text/css" href="style/main.css">
-	    <link rel="stylesheet" type="text/css" href="style/grids-min.css">
-	    <link rel="stylesheet" type="text/css" href="style/cssreset-min.css">
-        <link rel="stylesheet" href="style/jquery.mCustomScrollbar.min.css" />
-        <link rel="stylesheet" type="text/css" href="style/jquery.loadmask.css"/>
 
-	    
-	    <!-- Google Maps -->
-<!--    	<script type="text/javascript" src="http://maps.google.com/maps/api/js?v=3.3&sensor=false&language=en"></script>-->
-        <script type="text/javascript" src="http://maps.google.com/maps/api/js?libraries=geometry&sensor=true"></script>
-        <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-        
-        <!-- Google Analytics -->
-        <script>
-            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+<head>
+    <title>Tracks</title>
 
-            ga('create', 'UA-54715600-1', {
-              'cookieDomain': 'apphb.com',
-              'allowlinker': true
-            });
-            ga('send', 'pageview');
-        </script>
-	    
-	    <script type="text/javascript" src="libs/jquery-1.7.2.min.js"></script>
-	    <script type="text/javascript" src="libs/js.class.js"></script>
-		<script type="text/javascript" src="libs/romtracks.jquery-min.js"></script>
-		<script type="text/javascript" src="libs/romtracks-min.js"></script>
-        <script type="text/javascript" src="libs/romtracks.launcher-min.js"></script>
-		<script type="text/javascript" src="libs/mustache.js"></script>
-		<script type="text/javascript" src="libs/jsonp.js"></script>
-		<script type="text/javascript" src="libs/romtracks.helpers-min.js"></script>
-        <script type="text/javascript" src="libs/infobox.js"></script>
-        <script type="text/javascript" src="libs/markerclusterer.js"></script>
-        <script type="text/javascript" src="libs/d3.js"></script>
-        <script type="text/javascript" src="libs/jquery.mCustomScrollbar.concat.min.js"></script>
-        <script type="text/javascript" src="libs/jquery.loadmask.js"></script>
-        <script type="text/javascript" src="libs/jquery.ba-postmessage.min.js"></script>
-	    
-        <script type="text/javascript">
-            //Load browser specific CSS
-            if (jQuery.browser.version.indexOf("11") !== -1) {
-                TRACKS.loadCssFile("style/ie11-fixes.css");
-            }
-            else if (jQuery.browser.mozilla == true) {
-                TRACKS.loadCssFile("style/mozilla-fixes.css");
-            }
-        </script>
-		<!-- Font -->
-	    <link href='http://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>	
-		
-	</head>
-	<body>
+    <!-- Icon -->
+    <link rel="icon" href="images/favicon.ico" />
 
-        <div class="romtrack">
-            <div id="search"></div>
-            <div id="filters">
+    <!-- Style -->
+    <link rel="stylesheet" type="text/css" href="style/main.css">
+    <link rel="stylesheet" type="text/css" href="style/grids-min.css">
+    <link rel="stylesheet" type="text/css" href="style/cssreset-min.css">
+    <link rel="stylesheet" href="style/jquery.mCustomScrollbar.min.css" />
+    <link rel="stylesheet" type="text/css" href="style/jquery.loadmask.css" />
+
+
+    <!-- Google Maps -->
+    <!--    	<script type="text/javascript" src="http://maps.google.com/maps/api/js?v=3.3&sensor=false&language=en"></script>-->
+    <script type="text/javascript" src="http://maps.google.com/maps/api/js?libraries=geometry&key=AIzaSyBBjtzsYC6kxzMzP-uRGmrWTvqeLhLWBFI"></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+
+    <!-- Google Analytics -->
+    <script>
+        (function (i, s, o, g, r, a, m) {
+            i['GoogleAnalyticsObject'] = r;
+            i[r] = i[r] || function () {
+                (i[r].q = i[r].q || []).push(arguments)
+            }, i[r].l = 1 * new Date();
+            a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+            a.async = 1;
+            a.src = g;
+            m.parentNode.insertBefore(a, m)
+        })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+        ga('create', 'UA-54715600-1', {
+            'cookieDomain': 'apphb.com',
+            'allowlinker': true
+        });
+        ga('send', 'pageview');
+    </script>
+
+    <script type="text/javascript" src="libs/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="libs/js.class.js"></script>
+    <script type="text/javascript" src="libs/romtracks.jquery-min.js"></script>
+    <script type="text/javascript" src="libs/romtracks-min.js"></script>
+    <script type="text/javascript" src="libs/romtracks.launcher-min.js"></script>
+    <script type="text/javascript" src="libs/mustache.js"></script>
+    <script type="text/javascript" src="libs/jsonp.js"></script>
+    <script type="text/javascript" src="libs/romtracks.helpers-min.js"></script>
+    <script type="text/javascript" src="libs/infobox.js"></script>
+    <script type="text/javascript" src="libs/markerclusterer.js"></script>
+    <script type="text/javascript" src="libs/d3.js"></script>
+    <script type="text/javascript" src="libs/jquery.mCustomScrollbar.concat.min.js"></script>
+    <script type="text/javascript" src="libs/jquery.loadmask.js"></script>
+    <script type="text/javascript" src="libs/jquery.ba-postmessage.min.js"></script>
+
+    <script type="text/javascript">
+        //Load browser specific CSS
+        if (jQuery.browser.version.indexOf("11") !== -1) {
+            TRACKS.loadCssFile("style/ie11-fixes.css");
+        } else if (jQuery.browser.mozilla == true) {
+            TRACKS.loadCssFile("style/mozilla-fixes.css");
+        }
+    </script>
+    <!-- Font -->
+    <link href='http://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
+
+</head>
+
+<body>
+
+    <div class="romtrack">
+        <div id="search"></div>
+        <div id="filters">
+            <div id="container"></div>
+        </div>
+        <div id="settings">
+            <div id="container"></div>
+        </div>
+        <div id="list">
+            <div id="container"></div>
+        </div>
+        <div id="elevation-profile">
+            <div id="content">
+                <img id="elvation-profile-toggle" src="assets/images/chart.png" width="30px" />
                 <div id="container"></div>
             </div>
-            <div id="settings">
-                <div id="container"></div>
+        </div>
+        <div id="map"></div>
+    </div>
+    <!-- Templates -->
+
+    <!-- Search View template -->
+    <script id="search-tpl" type="text/template">
+        <img src="assets/images/red-search-icon.png" />
+        <input id="search-input" class="yui3-u" type="text" placeholder="{{language.searchPlaceholder}}" />
+        <div id="suggestions"></div>
+    </script>
+
+    <!-- Search View suggestions template -->
+    <script id="suggestions-tpl" type="text/template">
+        {{#suggestions}}
+        <div class="item">
+            <a id="addr-{{index}}" href="#">{{address}}</a>
+            <div class="separator"></div>
+        </div>
+        {{/suggestions}}
+    </script>
+
+    <!-- Track Tooltip template -->
+    <script id="track-tooltip-tpl" type="text/template">
+        <div class="infoWindow yui3-g">
+            {{#data.preview}}
+            <img class="yui3-u" src={{data.preview}} width="50px" height="50px" /> {{/data.preview}}
+            <div id="details" class="yui3-u">
+                <div id="name">{{data.name}}</div>
+                {{#data.length}}
+                <div id="length">
+                    <b>{{language.trackLength}}:</b> {{data.length}} km</div>{{/data.length}} {{#data.ascent}}
+                <div id="ascent">
+                    <b>{{language.trackAscent}}:</b> {{data.ascent}} m</div>{{/data.ascent}} {{#data.descent}}
+                <div id="descent">
+                    <b>{{language.trackDescent}}:</b> {{data.descent}} m</div>{{/data.descent}} {{#fullDetails}} {{#data.article}}
+                <div id="article">
+                    <a href={{data.article}} target="_blank">{{language.readPost}}</a>
+                </div>{{/data.article}} {{#data.url}}
+                <div id="download">
+                    <a href={{data.url}} target="_blank" download>{{language.downloadTrack}}</a>
+                </div>{{/data.url}} {{/fullDetails}}
             </div>
-            <div id="list">
-                <div id="container"></div>
+        </div>
+        <div class="tail"></div>
+    </script>
+
+    <!-- POI Tooltip template -->
+    <script id="poi-tooltip-tpl" type="text/template">
+        <div class="infoWindow yui3-g">
+            <img class="yui3-u" src={{data.preview}} width="50px" height="50px" />
+            <div id="details" class="yui3-u">
+                <div id="name" {{^fullDetails}}style="text-align: center; line-height: 50px;" {{/fullDetails}}>{{data.name}}</div>
+                {{#fullDetails}} {{#data.article}}
+                <div id="article">
+                    <a href={{data.article}} target="_blank">{{language.readPost}}</a>
+                </div>{{/data.article}} {{/fullDetails}}
             </div>
-            <div id="elevation-profile">
-                <div id="content">
-                    <img id="elvation-profile-toggle"  src="assets/images/chart.png" width="30px" />
-                    <div id="container"></div>
-                </div>
-            </div>
-            <div id="map"></div>
-		</div>
-		<!-- Templates -->
-		
-		<!-- Search View template -->
-		<script id="search-tpl" type="text/template">
-            <img src="assets/images/red-search-icon.png" />
-			<input id="search-input" class="yui3-u" type="text" placeholder="{{language.searchPlaceholder}}"/>
-            <div id="suggestions"></div>
-		</script>
-        
-        <!-- Search View suggestions template -->
-        <script id="suggestions-tpl" type="text/template">
-            {{#suggestions}}
-                <div class="item">
-                    <a id="addr-{{index}}" href="#">{{address}}</a>
-                    <div class="separator"></div>
-                </div>
-            {{/suggestions}}
-	   </script>
-        
-        <!-- Track Tooltip template -->
-        <script id="track-tooltip-tpl" type="text/template">
-            <div class="infoWindow yui3-g">
-                {{#data.preview}}
-                    <img class="yui3-u" src={{data.preview}} width="50px" height="50px"/>
-                {{/data.preview}}
-                <div id="details" class="yui3-u">
-                    <div id="name">{{data.name}}</div>
-                    {{#data.length}}<div id="length"><b>{{language.trackLength}}:</b> {{data.length}} km</div>{{/data.length}}
-                    {{#data.ascent}}<div id="ascent"><b>{{language.trackAscent}}:</b> {{data.ascent}} m</div>{{/data.ascent}}
-                    {{#data.descent}}<div id="descent"><b>{{language.trackDescent}}:</b> {{data.descent}} m</div>{{/data.descent}}
-                    {{#fullDetails}}
-                        {{#data.article}}<div id="article"><a href={{data.article}} target="_blank">{{language.readPost}}</a></div>{{/data.article}}
-                        {{#data.url}}<div id="download"><a href={{data.url}} target="_blank" download>{{language.downloadTrack}}</a></div>{{/data.url}}
-                    {{/fullDetails}}
-                </div>
-            </div>
-            <div class="tail"></div>
-		</script>
-        
-        <!-- POI Tooltip template -->
-        <script id="poi-tooltip-tpl" type="text/template">
-            <div class="infoWindow yui3-g">
-                <img class="yui3-u" src={{data.preview}} width="50px" height="50px"/>
-                <div id="details" class="yui3-u">
-                    <div id="name" {{^fullDetails}}style="text-align: center; line-height: 50px;"{{/fullDetails}}>{{data.name}}</div>
-                    {{#fullDetails}}
-                        {{#data.article}}<div id="article"><a href={{data.article}} target="_blank">{{language.readPost}}</a></div>{{/data.article}}
-                    {{/fullDetails}}
-            </div>
-            </div>
-            <div class="tail"></div>
-        </script>
-        
-        <!-- List template -->
-        <script id="list-tpl" type="text/template">
-            <img id="list-toggle" src="assets/images/list.png" width="30px"/>
-            <div id="data">
-                {{#data}}
-                    <div id="{{id}}" class="yui3-g data">
-                        <div class="yui3-u">
-                            <img src={{startMarkerUrl}} height="30px"/>
-                        </div>
-                        {{#preview}}
-                            <div class="yui3-u">
-                                <img id="preview" src={{preview}} width="60px" height="30px"/>    
-                            </div>
-                        {{/preview}}
-                        <div class="yui3-u info">
-                            <div id="name">{{name}}</div>
-                            <div id="data-parameters" style="display: none">
-                                {{#length}}<div id="length"><b>{{language.trackLength}}:</b> {{length}} km</div>{{/length}}
-                                {{#ascent}}<div id="ascent"><b>{{language.trackAscent}}:</b> {{ascent}} m</div>{{/ascent}}
-                                {{#descent}}<div id="descent"><b>{{language.trackDescent}}:</b> {{descent}} m</div>{{/descent}}
-                                {{#article}}<div id="article"><a href={{article}} target="_blank">{{language.readPost}}</a></div>{{/article}}
-                                {{#url}}<div id="download"><a href={{url}} target="_blank">{{language.downloadTrack}}</a></div>{{/url}}
-                            </div>
-                        </div>
-                    </div>
-                {{/data}}
-            </div>
-		</script>
-        
-        <!-- Filter template -->
-        <script id="filters-tpl" type="text/template">
-            <img id="filter-toggle" src="assets/images/filter.png" />
-            <div id="filter-items" class="yui3-g">
+        </div>
+        <div class="tail"></div>
+    </script>
+
+    <!-- List template -->
+    <script id="list-tpl" type="text/template">
+        <img id="list-toggle" src="assets/images/list.png" width="30px" />
+        <div id="data">
+            {{#data}}
+            <div id="{{id}}" class="yui3-g data">
                 <div class="yui3-u">
-                    <img id="all-data" width="11px" title="{{language.showAllTracksAndPois}}" src="assets/images/refresh.png" />
+                    <img src={{startMarkerUrl}} height="30px" />
                 </div>
-                <div class="filter-item yui3-u">
-                    <input id="pois" name="geographic-data" type="radio">
-                    <label for="pois">
-                        <img class="filter-marker" src="assets/images/poi-marker.png" width="11px"/>
-                    </label>
-                    <label for="pois">{{language.places}}</label>
+                {{#preview}}
+                <div class="yui3-u">
+                    <img id="preview" src={{preview}} width="60px" height="30px" />
                 </div>
-                <div class="filter-item yui3-u">
-                    <input id="tracks" name="geographic-data" type="radio">
-                    <label for="tracks">
-                        <img class="filter-marker" src="assets/images/marker.png" width="11px"/>
-                        <span>{{language.tracks}}</span>
-                    </label>
-                </div>   
-                <div class="filter-item yui3-u">
-                    <input id="pois-and-tracks" name="geographic-data" type="radio" checked>{{language.tracksAndPlaces}}
-                </div>
-            </div>
-        </script>
-        
-        <!-- Settings template -->
-        <script id="settings-tpl" type="text/template">
-            <img id="settings-toggle" src="assets/images/settings.png" />
-            <div id="settings-items" class="yui3-g">
-                <div class="settings-item yui3-u">
-                    <input id="trails" name="geographic-data" type="checkbox" checked>
-                    <label for="pois">{{language.trailsLayer}}</label>
+                {{/preview}}
+                <div class="yui3-u info">
+                    <div id="name">{{name}}</div>
+                    <div id="data-parameters" style="display: none">
+                        {{#length}}
+                        <div id="length">
+                            <b>{{language.trackLength}}:</b> {{length}} km</div>{{/length}} {{#ascent}}
+                        <div id="ascent">
+                            <b>{{language.trackAscent}}:</b> {{ascent}} m</div>{{/ascent}} {{#descent}}
+                        <div id="descent">
+                            <b>{{language.trackDescent}}:</b> {{descent}} m</div>{{/descent}} {{#article}}
+                        <div id="article">
+                            <a href={{article}} target="_blank">{{language.readPost}}</a>
+                        </div>{{/article}} {{#url}}
+                        <div id="download">
+                            <a href={{url}} target="_blank">{{language.downloadTrack}}</a>
+                        </div>{{/url}}
+                    </div>
                 </div>
             </div>
-        </script>
-        
-        <script id="empty-list-tpl" type="text/template">
-            <img id="list-toggle" src="assets/images/list.png" width="30px"/>
-            <div id="message">{{language.noResults}}</div>
-            <div id="actions">
-                <span id="search" class="link">{{language.searchAnotherLocation}}</span> {{language.or}} <span id="all-data" class="link">{{language.showAllTracksAndPois}}.</span>
+            {{/data}}
+        </div>
+    </script>
+
+    <!-- Filter template -->
+    <script id="filters-tpl" type="text/template">
+        <img id="filter-toggle" src="assets/images/filter.png" />
+        <div id="filter-items" class="yui3-g">
+            <div class="yui3-u">
+                <img id="all-data" width="11px" title="{{language.showAllTracksAndPois}}" src="assets/images/refresh.png" />
             </div>
-		</script>
-		
-        <!-- Elevation profile template -->
-        <script id="elevation-profile-tpl" type="text/template">
-            
-		</script>
-	</body>
+            <div class="filter-item yui3-u">
+                <input id="pois" name="geographic-data" type="radio">
+                <label for="pois">
+                    <img class="filter-marker" src="assets/images/poi-marker.png" width="11px" />
+                </label>
+                <label for="pois">{{language.places}}</label>
+            </div>
+            <div class="filter-item yui3-u">
+                <input id="tracks" name="geographic-data" type="radio">
+                <label for="tracks">
+                    <img class="filter-marker" src="assets/images/marker.png" width="11px" />
+                    <span>{{language.tracks}}</span>
+                </label>
+            </div>
+            <div class="filter-item yui3-u">
+                <input id="pois-and-tracks" name="geographic-data" type="radio" checked>{{language.tracksAndPlaces}}
+            </div>
+        </div>
+    </script>
+
+    <!-- Settings template -->
+    <script id="settings-tpl" type="text/template">
+        <img id="settings-toggle" src="assets/images/settings.png" />
+        <div id="settings-items" class="yui3-g">
+            <div class="settings-item yui3-u">
+                <input id="trails" name="geographic-data" type="checkbox" checked>
+                <label for="pois">{{language.trailsLayer}}</label>
+            </div>
+        </div>
+    </script>
+
+    <script id="empty-list-tpl" type="text/template">
+        <img id="list-toggle" src="assets/images/list.png" width="30px" />
+        <div id="message">{{language.noResults}}</div>
+        <div id="actions">
+            <span id="search" class="link">{{language.searchAnotherLocation}}</span> {{language.or}}
+            <span id="all-data" class="link">{{language.showAllTracksAndPois}}.</span>
+        </div>
+    </script>
+
+    <!-- Elevation profile template -->
+    <script id="elevation-profile-tpl" type="text/template">
+
+    </script>
+</body>
+
 </html>
