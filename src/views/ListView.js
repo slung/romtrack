@@ -54,7 +54,7 @@
 		
 		render: function()
 		{
-            if (!this.data || this.data.length == 0) {
+            if (!this.data || this.data.length === 0) {
                 this.container.innerHTML = this.mustache(this.templates.empty, {
                     language: this.getDictionary()
                 });

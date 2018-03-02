@@ -389,6 +389,10 @@ body {
 #list .data .info #name {
     font-size: 13px;
     font-weight: bold;
+    text-overflow: ellipsis;
+    width: 170px;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 #list .data .info #data-parameters {
