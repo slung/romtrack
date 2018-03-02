@@ -425,6 +425,7 @@ body {
 
 #list .data #preview {
     margin-left: 12px;
+    object-fit: cover;
 }
 
 /* Elevation profile */
