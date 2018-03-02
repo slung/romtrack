@@ -225,7 +225,7 @@ TRACKS.setUrlHash = function (content) {
     window.location.hash = content;
     
     // Set for other listeners (like iFrame parents)
-    jQuery.postMessage(content, 'http://www.amazingromania.net/p/trasee.html', parent);
+	jQuery.postMessage(content, 'https://amazingromania.net/harta/', parent);
 };
 
 /*
